@@ -76,13 +76,17 @@ const Nav = ({ page, setPage, lang, setLang }) => {
   return (
     <nav style={{ position: "sticky", top: 0, zIndex: 100, background: C.white, borderBottom: `1px solid ${C.border}`, padding: "0 24px" }}>
       <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: "64px" }}>
-        <div onClick={() => setPage("home")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: C.blue, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <span style={{ color: C.white, fontSize: "14px", fontWeight: "700", fontFamily: "Playfair Display" }}>S</span>
+        <div onClick={() => setPage("home")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
+          <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="8" fill="#4FC3F7"/>
+            <polygon points="20,7 23.1,16.6 33.5,16.6 25.2,22.4 28.3,32 20,26.2 11.7,32 14.8,22.4 6.5,16.6 16.9,16.6" fill="white"/>
+          </svg>
+          <div>
+            <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "17px", color: C.charcoal, fontWeight: "600", lineHeight: "1.1" }}>
+              Somalia <span style={{ color: C.blue }}>2040</span>
+            </div>
+            <div style={{ fontSize: "9px", letterSpacing: "2px", color: C.blue, textTransform: "uppercase", fontWeight: "600" }}>Build. Unite. Lead.</div>
           </div>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: "18px", color: C.charcoal, fontWeight: "600" }}>
-            Somalia <span style={{ color: C.blue }}>2040</span>
-          </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "28px" }}>
           {links.map(l => (
@@ -109,7 +113,16 @@ const Footer = ({ setPage }) => (
     <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "32px", marginBottom: "40px" }}>
         <div>
-          <div style={{ fontFamily: "Playfair Display", fontSize: "22px", marginBottom: "12px" }}>Somalia <span style={{ color: C.blue }}>2040</span></div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+            <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="40" height="40" rx="8" fill="#4FC3F7"/>
+              <polygon points="20,7 23.1,16.6 33.5,16.6 25.2,22.4 28.3,32 20,26.2 11.7,32 14.8,22.4 6.5,16.6 16.9,16.6" fill="white"/>
+            </svg>
+            <div>
+              <div style={{ fontFamily: "Playfair Display", fontSize: "18px", color: C.white, lineHeight: "1.1" }}>Somalia <span style={{ color: C.blue }}>2040</span></div>
+              <div style={{ fontSize: "9px", letterSpacing: "2px", color: C.blue, textTransform: "uppercase", fontWeight: "600" }}>Build. Unite. Lead.</div>
+            </div>
+          </div>
           <p style={{ color: "#9CA3AF", fontSize: "13px", maxWidth: "260px", lineHeight: "1.7" }}>A space for honest thinking, Somali voices, and the long game toward a better future.</p>
         </div>
         <div style={{ display: "flex", gap: "48px", flexWrap: "wrap" }}>
@@ -137,13 +150,13 @@ const HomePage = ({ posts, lang, word, setPage, setCurrentPost, voices }) => {
   const featuredVoice = voices.find(v => v.featured);
   return (
     <div className="fade-in">
-      <div style={{ background: `linear-gradient(135deg, ${C.soft} 0%, ${C.lightBlue} 100%)`, padding: "80px 24px 60px", borderBottom: `1px solid ${C.border}` }}>
-        <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}>
-          <Tag>{lang === "en" ? "Somalia 2040" : "Soomaaliya 2040"}</Tag>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(32px, 5vw, 52px)", color: C.charcoal, fontWeight: "700", lineHeight: "1.2", margin: "20px 0 16px" }}>
+      <div style={{ background: `linear-gradient(135deg, ${C.soft} 0%, ${C.lightBlue} 100%)`, padding: "40px 24px 36px", borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: "680px", margin: "0 auto", textAlign: "center" }}>
+          <Tag>{lang === "en" ? "Build. Unite. Lead." : "Dhis. Mideyso. Hoggaami."}</Tag>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(26px, 3.5vw, 42px)", color: C.charcoal, fontWeight: "700", lineHeight: "1.2", margin: "14px 0 12px" }}>
             {lang === "en" ? "Building the future Somalia deserves." : "Dhisidda mustaqbalka Soomaaliya mudan."}
           </h1>
-          <p style={{ color: C.mid, fontSize: "17px", lineHeight: "1.8", maxWidth: "580px", margin: "0 auto 32px" }}>
+          <p style={{ color: C.mid, fontSize: "15px", lineHeight: "1.8", maxWidth: "500px", margin: "0 auto 24px" }}>
             {lang === "en" ? "A personal space for honest thinking, Somali voices, and the long work of imagining what could be." : "Meel shakhsi ah oo loogu talagalay fikraddii daacadda ah, codadka Soomaalida."}
           </p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
