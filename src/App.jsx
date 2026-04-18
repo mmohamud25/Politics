@@ -873,7 +873,7 @@ const AdminShell = ({ children, tab, setTab, onLogout, T }) => {
   const [sideOpen, setSideOpen] = useState(false);
   const tabs = [
     { key: 'dash', label: 'Dashboard' }, { key: 'posts', label: 'Blog Posts' },
-    { key: 'comments', label: 'Comments' }, { key: 'community', label: 'Community' },
+    { key: 'media', label: 'Media Library' }, { key: 'comments', label: 'Comments' }, { key: 'community', label: 'Community' },
     { key: 'word', label: 'Word of Week' }, { key: 'reading', label: 'Reading List' },
     { key: 'timeline', label: 'Timeline' }, { key: 'settings', label: 'Settings' },
   ];
@@ -1307,8 +1307,8 @@ export default function App() {
   const [monthlyQ, setMonthlyQ]     = useState('');
   const [siteTitle, setSiteTitle]   = useState('Somalia');
   const [currentPost, setCurrentPost] = useState(null);
-  const [adminLoggedIn, setAdminLoggedIn] = useState(() => sessionStorage.getItem('s2040_admin') === 'true');
-  const [adminTab, setAdminTab]     = useState('dash');
+  const [adminLoggedIn, setAdminLoggedIn] = useState(() => localStorage.getItem('s2040_admin') === 'true');
+  const [adminTab, setAdminTab]     = useState(() => localStorage.getItem('s2040_tab') || 'dash');
   const [loading, setLoading]       = useState(true);
 
   const T = getT(dark);
@@ -1340,6 +1340,8 @@ export default function App() {
   }, []);
 
   useEffect(() => { localStorage.setItem('s2040_dark', dark); }, [dark]);
+  useEffect(() => { localStorage.setItem('s2040_tab', adminTab); }, [adminTab]);
+  useEffect(() => { localStorage.setItem('s2040_tab', adminTab); }, [adminTab]);
 
   useEffect(() => { document.title = `${siteTitle} 2040`; }, [siteTitle]);
 
@@ -1361,8 +1363,8 @@ export default function App() {
 
   useEffect(() => { loadAll(); }, []);
 
-  const adminLogin = () => { setAdminLoggedIn(true); sessionStorage.setItem('s2040_admin', 'true'); };
-  const adminLogout = () => { setAdminLoggedIn(false); sessionStorage.removeItem('s2040_admin'); nav('home'); };
+  const adminLogin = () => { setAdminLoggedIn(true); localStorage.setItem('s2040_admin', 'true'); };
+  const adminLogout = () => { setAdminLoggedIn(false); localStorage.removeItem('s2040_admin'); nav('home'); };
 
   const handleSavePost    = async (p) => { await savePost(p); await loadAll(); };
   const handleDeletePost  = async (id) => { await deletePost(id); setPosts(posts.filter(p => p.id !== id)); };
@@ -1397,6 +1399,7 @@ export default function App() {
         <AdminShell tab={adminTab} setTab={setAdminTab} onLogout={adminLogout} T={T}>
           {adminTab === 'dash'      && <AdminDash posts={posts} voices={voices} T={T} />}
           {adminTab === 'posts'     && <AdminPosts posts={posts} onSave={handleSavePost} onDelete={handleDeletePost} onToggle={handleTogglePost} T={T} />}
+          {adminTab === 'media'     && <AdminMedia T={T} />}
           {adminTab === 'comments'  && <AdminComments posts={posts} onApprove={handleApproveComment} onDelete={handleDeleteComment} T={T} />}
           {adminTab === 'community' && <AdminCommunity voices={voices} onToggleFeatured={handleToggleVoice} onDelete={handleDeleteVoice} monthlyQ={monthlyQ} onUpdateQ={handleUpdateQ} T={T} />}
           {adminTab === 'word'      && <AdminWord word={word} wordArchive={wordArchive} onUpdate={handleUpdateWord} onAddToArchive={handleAddToArchive} onSetActive={handleSetActive} T={T} />}

@@ -126,3 +126,31 @@ export const setActiveWord = async (id, wordData) => {
   await supabase.from('somalia_word_archive').update({ active: true }).eq('id', id)
   await setSetting('word_of_week', { somali: wordData.somali, english: wordData.english, sentence: wordData.sentence })
 }
+
+export const uploadMedia = async (file) => {
+  const ext = file.name.split('.').pop()
+  const filename = `${Date.now()}-${Math.random().toString(36).substr(2,9)}.${ext}`
+  const { data, error } = await supabase.storage
+    .from('somalia2040-media')
+    .upload(filename, file, { cacheControl: '3600', upsert: false })
+  if (error) { console.error(error); return null; }
+  const { data: urlData } = supabase.storage.from('somalia2040-media').getPublicUrl(filename)
+  return { url: urlData.publicUrl, path: filename, name: file.name, size: file.size }
+}
+
+export const deleteMedia = async (path) => {
+  const { error } = await supabase.storage.from('somalia2040-media').remove([path])
+  if (error) console.error(error)
+}
+
+export const listMedia = async () => {
+  const { data, error } = await supabase.storage.from('somalia2040-media').list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } })
+  if (error) { console.error(error); return []; }
+  return (data || []).map(f => ({
+    name: f.name,
+    path: f.name,
+    url: supabase.storage.from('somalia2040-media').getPublicUrl(f.name).data.publicUrl,
+    size: f.metadata?.size || 0,
+    created_at: f.created_at,
+  }))
+}
