@@ -9,11 +9,11 @@ import {
 } from "./supabase.js";
 
 const GlobalStyles = ({ dark }) => (
-  <style>{\`
+  <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
-    body { font-family: 'DM Sans', sans-serif; background: \${dark ? '#08111E' : '#FAFAF8'}; transition: background 0.4s; overflow-x: hidden; }
+    body { font-family: 'DM Sans', sans-serif; background: ${dark ? '#08111E' : '#FAFAF8'}; transition: background 0.4s; overflow-x: hidden; }
     ::selection { background: rgba(79,195,247,0.25); }
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-thumb { background: #4FC3F7; border-radius: 2px; }
@@ -24,13 +24,13 @@ const GlobalStyles = ({ dark }) => (
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
     .fade-in { animation: fadeIn 0.3s ease forwards; }
     .slide-down { animation: slideDown 0.25s ease forwards; }
-    .post-content p { margin-bottom: 1.5rem; font-size: 18px; line-height: 1.95; color: \${dark ? '#CBD5E1' : '#374151'}; }
-    .post-content h1 { font-family: 'Playfair Display', serif; font-size: 32px; margin: 2.5rem 0 1rem; color: \${dark ? '#F1F5F9' : '#0F172A'}; }
-    .post-content h2 { font-family: 'Playfair Display', serif; font-size: 26px; margin: 2rem 0 0.75rem; color: \${dark ? '#F1F5F9' : '#0F172A'}; }
-    .post-content h3 { font-family: 'Playfair Display', serif; font-size: 20px; margin: 1.5rem 0 0.5rem; color: \${dark ? '#F1F5F9' : '#0F172A'}; }
-    .post-content blockquote { border-left: 3px solid #4FC3F7; padding: 12px 20px; margin: 2rem 0; background: rgba(79,195,247,0.05); border-radius: 0 8px 8px 0; font-style: italic; color: \${dark ? '#94A3B8' : '#6B7280'}; }
+    .post-content p { margin-bottom: 1.5rem; font-size: 18px; line-height: 1.95; color: ${dark ? '#CBD5E1' : '#374151'}; }
+    .post-content h1 { font-family: 'Playfair Display', serif; font-size: 32px; margin: 2.5rem 0 1rem; color: ${dark ? '#F1F5F9' : '#0F172A'}; }
+    .post-content h2 { font-family: 'Playfair Display', serif; font-size: 26px; margin: 2rem 0 0.75rem; color: ${dark ? '#F1F5F9' : '#0F172A'}; }
+    .post-content h3 { font-family: 'Playfair Display', serif; font-size: 20px; margin: 1.5rem 0 0.5rem; color: ${dark ? '#F1F5F9' : '#0F172A'}; }
+    .post-content blockquote { border-left: 3px solid #4FC3F7; padding: 12px 20px; margin: 2rem 0; background: rgba(79,195,247,0.05); border-radius: 0 8px 8px 0; font-style: italic; color: ${dark ? '#94A3B8' : '#6B7280'}; }
     .post-content ul, .post-content ol { padding-left: 1.5rem; margin: 1rem 0; }
-    .post-content li { margin-bottom: 0.5rem; line-height: 1.7; color: \${dark ? '#CBD5E1' : '#374151'}; }
+    .post-content li { margin-bottom: 0.5rem; line-height: 1.7; color: ${dark ? '#CBD5E1' : '#374151'}; }
     .post-content img { max-width: 100%; border-radius: 12px; margin: 2rem 0; }
     .post-content a { color: #4FC3F7; border-bottom: 1px solid rgba(79,195,247,0.3); text-decoration: none; }
     [contenteditable] { outline: none; }
@@ -41,7 +41,7 @@ const GlobalStyles = ({ dark }) => (
     [contenteditable] ul, [contenteditable] ol { padding-left: 20px; margin: 6px 0; }
     [contenteditable] img { max-width: 100%; border-radius: 8px; margin: 8px 0; }
     [contenteditable] a { color: #4FC3F7; }
-  \`}</style>
+  `}</style>
 );
 
 /* ─── ANNOUNCEMENT BANNER ──────────────────────────────────────── */
@@ -2850,5 +2850,3 @@ const VisionPage = ({ lang, timeline, T }) => {
     </div>
   );
 };
-
-
