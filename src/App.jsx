@@ -1,7 +1,4 @@
-imp
-/* Legacy C alias for backwards compat */
-const C = { ...getT(false), white: '#FFFFFF' };
-ort { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   supabase,
   getPosts, savePost, deletePost, togglePostField,
@@ -61,6 +58,9 @@ const getT = (dark) => ({
   footBg: dark ? '#040C16' : '#0A0F1A', inputBg: dark ? '#08111E' : '#FFFFFF',
   lightBlue: dark ? '#0C2D48' : '#EFF9FF', dark,
 });
+
+const C = getT(false); C.white = '#FFFFFF';
+
 /* ─── UTILITIES ──────────────────────────────── */
 const useIsMobile = () => {
   const [m, setM] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
