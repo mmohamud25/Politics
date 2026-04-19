@@ -1450,10 +1450,13 @@ const MarketingPage = ({ setPage, lang, voices, posts, T }) => {
 };
 
 export default function App() {
-  const [page, setPage]         = useState(() => localStorage.getItem('s2040_page') || 'home');
+  const [page, setPage]         = useState(() => {
+    const saved = localStorage.getItem('s2040_page') || 'home';
+    // Safety: never restore to post/profile (requires runtime data)
+    return ['post', 'profile'].includes(saved) ? 'home' : saved;
+  });
   const [lang, setLang]         = useState('en');
   const [dark, setDark]         = useState(() => localStorage.getItem('s2040_dark') === 'true');
-  const [transitioning, setTrans] = useState(false);
   const [posts, setPosts]       = useState([]);
   const [voices, setVoices]     = useState([]);
   const [reading, setReading]   = useState([]);
@@ -1481,26 +1484,34 @@ export default function App() {
   useEffect(() => { document.title = `${siteTitle} 2040`; }, [siteTitle]);
 
   const nav = useCallback((p) => {
-    if (p !== 'admin') { if (p !== 'post') localStorage.setItem('s2040_page', p); trackEvent('page_view', { page: p }); }
-    setTrans(true);
-    setTimeout(() => { setPage(p); setTrans(false); window.scrollTo(0, 0); }, 150);
+    if (p !== 'admin') {
+      if (p !== 'post') localStorage.setItem('s2040_page', p);
+      trackEvent('page_view', { page: p });
+    }
+    setPage(p);
+    window.scrollTo(0, 0);
   }, []);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
-    const [p, v, r, w, q, tl, st, wa, ann] = await Promise.all([
-      getPosts(), getVoices(), getReading(),
-      getSetting('word_of_week'), getSetting('monthly_question'), getSetting('timeline'),
-      getSetting('site_title'), getWordArchive(), getAnnouncement(),
-    ]);
-    setPosts(p || []); setVoices(v || []); setReading(r || []);
-    if (w) setWord(w);
-    if (q) setMonthlyQ(typeof q === 'string' ? q : '');
-    if (tl) setTimeline(tl);
-    if (st) setSiteTitle(typeof st === 'string' ? st : 'Somalia');
-    setWordArchive(wa || []);
-    if (ann) setAnnouncement(ann);
-    setLoading(false);
+    try {
+      const [p, v, r, w, q, tl, st, wa, ann] = await Promise.all([
+        getPosts(), getVoices(), getReading(),
+        getSetting('word_of_week'), getSetting('monthly_question'), getSetting('timeline'),
+        getSetting('site_title'), getWordArchive(), getAnnouncement(),
+      ]);
+      setPosts(p || []); setVoices(v || []); setReading(r || []);
+      if (w) setWord(w);
+      if (q) setMonthlyQ(typeof q === 'string' ? q : '');
+      if (tl) setTimeline(tl);
+      if (st) setSiteTitle(typeof st === 'string' ? st : 'Somalia');
+      setWordArchive(wa || []);
+      if (ann) setAnnouncement(ann);
+    } catch (err) {
+      console.error('loadAll error:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -1513,17 +1524,19 @@ export default function App() {
         getUserSavedPosts(session.user.id).then(setSavedPostIds);
       }
     });
-    // Listen for auth changes (tab focus, token refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        getProfile(session.user.id).then(setUserProfile);
-        getUserSavedPosts(session.user.id).then(setSavedPostIds);
-      } else {
-        setUser(null); setUserProfile(null); setSavedPostIds([]);
-      }
-    });
-    return () => subscription.unsubscribe();
+    // Listen for auth changes
+    try {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+          getProfile(session.user.id).then(setUserProfile);
+          getUserSavedPosts(session.user.id).then(setSavedPostIds);
+        } else {
+          setUser(null); setUserProfile(null); setSavedPostIds([]);
+        }
+      });
+      return () => subscription.unsubscribe();
+    } catch (e) { console.error('Auth listener error:', e); }
     // Restore auth session
     getSession().then(async (session) => {
       if (session?.user) {
@@ -1625,12 +1638,12 @@ export default function App() {
   return (
     <>
       <GlobalStyles dark={dark} />
-      <div style={{ minHeight: '100vh', background: T.bg, fontFamily: "'DM Sans',sans-serif", transition: 'opacity 0.15s ease', opacity: transitioning ? 0 : 1 }}>
+      <div style={{ minHeight: '100vh', background: T.bg, fontFamily: "'DM Sans',sans-serif" }}>
         <Nav page={page} setPage={nav} lang={lang} setLang={setLang} dark={dark} setDark={setDark} T={T} siteTitle={siteTitle} />
         {!annDismissed && announcement && <AnnouncementBanner announcement={announcement} onClose={() => setAnnDismissed(true)} />}
 
         {loading ? (
-          <div style={{ paddingTop: '64px', maxWidth: '800px', margin: '0 auto', padding: '120px 24px' }}>
+          <div style={{ paddingTop: '64px', minHeight: '100vh', maxWidth: '800px', margin: '0 auto', padding: '120px 24px' }}>
             {[['12px','100px','20px'],['48px','70%','14px'],['48px','50%','28px'],['16px','90%'],['16px','80%'],['16px','85%']].map(([h, w, mb], i) => (
               <div key={i} style={{ width: w || '100%', height: h, borderRadius: '6px', marginBottom: mb || '10px', background: T.dark ? 'linear-gradient(90deg,#0F1E30 25%,#1A2D44 50%,#0F1E30 75%)' : 'linear-gradient(90deg,#F0F0EE 25%,#E8E8E6 50%,#F0F0EE 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />
             ))}
@@ -1639,13 +1652,34 @@ export default function App() {
           <>
             {page === 'home'    && <HomePage posts={posts} lang={lang} word={word} setPage={nav} setCurrentPost={hOpenPost} voices={voices} dark={dark} T={T} />}
             {page === 'blog'    && <BlogPage posts={posts} lang={lang} setPage={nav} setCurrentPost={hOpenPost} T={T} />}
-            {page === 'post'    && activePost && <PostPage post={activePost} lang={lang} setPage={nav} onCommentSubmit={hAddComment} user={user} savedPostIds={savedPostIds} onSavePost={handleSavePost} onShowAuth={() => setShowAuth(true)} T={T} />}
+            {page === 'post' && (
+              activePost
+                ? <PostPage post={activePost} lang={lang} setPage={nav} onCommentSubmit={hAddComment} user={user} savedPostIds={savedPostIds} onSavePost={handleSavePost} onShowAuth={() => setShowAuth(true)} T={T} />
+                : <div style={{ paddingTop: '140px', textAlign: 'center', minHeight: '60vh' }}>
+                    <p style={{ color: T.mid, fontSize: '15px', marginBottom: '20px' }}>Post not found.</p>
+                    <button onClick={() => nav('blog')} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '10px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>← Back to Blog</button>
+                  </div>
+            )}
             {page === 'vision'  && <VisionPage lang={lang} timeline={timeline} T={T} />}
             {page === 'story'   && <StoryPage lang={lang} T={T} />}
             {page === 'reading' && <ReadingPage reading={reading} lang={lang} T={T} />}
-            {page === 'profile' && user && <ProfilePage user={user} profile={userProfile} savedPosts={savedPostIds} posts={posts} onUpdateProfile={handleUpdateProfile} onUnsave={handleSavePost} T={T} />}
+            {page === 'profile' && (
+              user
+                ? <ProfilePage user={user} profile={userProfile} savedPosts={savedPostIds} posts={posts} onUpdateProfile={handleUpdateProfile} onUnsave={handleSavePost} T={T} />
+                : <div style={{ paddingTop: '140px', textAlign: 'center', minHeight: '60vh' }}>
+                    <p style={{ color: T.mid, fontSize: '15px', marginBottom: '20px' }}>Sign in to view your profile.</p>
+                    <button onClick={() => setShowAuth(true)} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '10px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Sign In</button>
+                  </div>
+            )}
             {page === 'connect' && <ConnectPage voices={voices} onVoiceSubmit={hAddVoice} lang={lang} monthlyQ={monthlyQ} T={T} />}
             {page === 'about'   && <MarketingPage setPage={nav} lang={lang} voices={voices} posts={posts} T={T} />}
+            {!['home','blog','post','vision','story','reading','connect','about','profile'].includes(page) && (
+              <div style={{ paddingTop: '140px', textAlign: 'center', minHeight: '60vh' }}>
+                <div style={{ fontFamily: 'Playfair Display', fontSize: '80px', color: T.border, marginBottom: '16px' }}>404</div>
+                <p style={{ color: T.mid, fontSize: '15px', marginBottom: '24px' }}>Page not found.</p>
+                <button onClick={() => nav('home')} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '10px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Go Home</button>
+              </div>
+            )}
           </>
         )}
 
