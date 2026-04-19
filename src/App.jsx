@@ -10,6 +10,8 @@ import {
   uploadMedia, deleteMedia, listMedia,
   trackEvent, getAnalyticsSummary,
   getAnnouncement, saveAnnouncement, clearAnnouncement, publishScheduledPosts,
+  signUp, signIn, signOut, getSession, getProfile, updateProfile,
+  savePostForUser, unsavePostForUser, getUserSavedPosts, checkPostSaved,
 } from "./supabase.js";
 
 /* ─── GLOBAL STYLES ────────────────────────────────── */
@@ -212,7 +214,7 @@ const Btn = ({ children, onClick, style = {}, outline, small, danger, T, disable
 
 /* ─── NAV ─────────────────────────────────────────────────────── */
 /* ─── NAV ─────────────────────────────────────────────────────── */
-const Nav = ({ page, setPage, lang, setLang, dark, setDark, T, siteTitle }) => {
+const Nav = ({ page, setPage, lang, setLang, dark, setDark, T, siteTitle, user, userProfile, onShowAuth, onSignOut }) => {
   const t = T;
   const isMobile = useIsMobile();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -255,6 +257,11 @@ const Nav = ({ page, setPage, lang, setLang, dark, setDark, T, siteTitle }) => {
               ))}
               <button onClick={() => setLang(lang === 'en' ? 'so' : 'en')} style={{ background: 'rgba(79,195,247,0.1)', border: '1px solid rgba(79,195,247,0.2)', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', color: '#4FC3F7', fontWeight: '700', letterSpacing: '1px' }}>{lang === 'en' ? 'SO' : 'EN'}</button>
               <button onClick={() => setDark(!dark)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>{dark ? '☀️' : '🌙'}</button>
+              {user ? (
+                <UserMenu user={user} profile={userProfile} onSignOut={onSignOut} onViewProfile={() => go('profile')} T={T} />
+              ) : (
+                <button onClick={onShowAuth} style={{ background: 'rgba(79,195,247,0.1)', border: '1px solid rgba(79,195,247,0.2)', borderRadius: '6px', padding: '6px 14px', fontSize: '12px', cursor: 'pointer', color: '#4FC3F7', fontWeight: '600', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>Sign In</button>
+              )}
             </div>
           )}
           {isMobile && (
@@ -468,286 +475,108 @@ const BlogPage = ({ posts, lang, setPage, setCurrentPost, T }) => {
   );
 };
 
-const PostPage = ({ post, lang, setPage, onCommentSubmit }) => {
-  const [comment, setComment] = useState({ author: "", text: "" });
+const PostPage = ({ post, lang, setPage, onCommentSubmit, user, savedPostIds, onSavePost, onShowAuth, T }) => {
+  const t = T;
+  const isMobile = useIsMobile();
+  const [comment, setComment] = useState({ author: user?.email?.split('@')[0] || '', text: '' });
   const [submitted, setSubmitted] = useState(false);
+  const isSaved = savedPostIds && savedPostIds.includes(post.id);
   const comments = (post.somalia_comments || []).filter(c => c.approved);
+  const content_body = lang === 'en' ? post.content : (post.content_so || post.content);
+  const iStyle = { width: '100%', padding: '10px 13px', border: `1px solid ${t.border}`, borderRadius: '8px', fontSize: '14px', background: t.inputBg, color: t.charcoal, outline: 'none', marginBottom: '10px', fontFamily: "'DM Sans', sans-serif" };
 
   const handleSubmit = async () => {
     if (!comment.author || !comment.text) return;
-    await onCommentSubmit({ post_id: post.id, ...comment, approved: false, date: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) });
+    await onCommentSubmit({ post_id: post.id, ...comment, approved: false, date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) });
     setSubmitted(true);
   };
 
-  const content = lang === "en" ? post.content : (post.content_so || post.content);
-
-  return (
-    <div className="fade-in" style={{ maxWidth: "720px", margin: "0 auto", padding: "60px 24px" }}>
-      <span onClick={() => setPage("blog")} style={{ color: C.blue, cursor: "pointer", fontSize: "13px", display: "block", marginBottom: "32px" }}>← Back to Blog</span>
-      <Tag>Essay</Tag>
-      <h1 style={{ fontFamily: "Playfair Display", fontSize: "clamp(28px, 4vw, 40px)", color: C.charcoal, margin: "16px 0 12px", lineHeight: "1.2" }}>
-        {lang === "en" ? post.title : (post.title_so || post.title)}
-      </h1>
-      <p style={{ color: C.mid, fontSize: "13px", marginBottom: "40px" }}>{post.date}</p>
-      <Divider />
-      {content && content.split("\n\n").map((para, i) => (
-        <p key={i} style={{ color: C.charcoal, fontSize: "17px", lineHeight: "1.9", marginBottom: "24px" }}>{para}</p>
-      ))}
-      <Divider />
-      <div style={{ marginTop: "48px" }}>
-        <h3 style={{ fontFamily: "Playfair Display", fontSize: "24px", color: C.charcoal, marginBottom: "32px" }}>Responses ({comments.length})</h3>
-        {comments.map(c => (
-          <div key={c.id} style={{ background: C.soft, borderRadius: "12px", padding: "20px", marginBottom: "16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-              <span style={{ fontWeight: "600", color: C.charcoal, fontSize: "14px" }}>{c.author}</span>
-              <span style={{ color: C.mid, fontSize: "12px" }}>{c.date}</span>
-            </div>
-            <p style={{ color: C.charcoal, fontSize: "14px", lineHeight: "1.6" }}>{c.text}</p>
-          </div>
-        ))}
-        <div style={{ background: C.soft, borderRadius: "16px", padding: "28px", marginTop: "32px" }}>
-          <h4 style={{ fontFamily: "Playfair Display", fontSize: "18px", color: C.charcoal, marginBottom: "20px" }}>Leave a response</h4>
-          {submitted ? (
-            <p style={{ color: C.blue, fontSize: "14px" }}>Your response has been submitted for review. Thank you.</p>
-          ) : (
-            <>
-              <input value={comment.author} onChange={e => setComment({ ...comment, author: e.target.value })} placeholder="Your name"
-                style={{ width: "100%", padding: "12px", border: `1px solid ${C.border}`, borderRadius: "8px", marginBottom: "12px", fontFamily: "DM Sans", fontSize: "14px", outline: "none" }} />
-              <textarea value={comment.text} onChange={e => setComment({ ...comment, text: e.target.value })} placeholder="Share your thoughts..." rows={4}
-                style={{ width: "100%", padding: "12px", border: `1px solid ${C.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", resize: "vertical", marginBottom: "16px", outline: "none" }} />
-              <Btn onClick={handleSubmit}>Submit Response</Btn>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/* ─── VISION PAGE ─────────────────────────────────────────────── */
-/* ─── VISION PAGE ─────────────────────────────────────────────── */
-const VisionPage = ({ lang, timeline, T }) => {
-  const t = T;
-  const isMobile = useIsMobile();
   return (
     <div style={{ paddingTop: '64px' }}>
-      <div style={{ background: 'linear-gradient(160deg,#040C16 0%,#0A0F1A 100%)', padding: isMobile ? '52px 20px 44px' : '88px 24px 72px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '50%', right: '-5%', width: '500px', height: '500px', background: 'radial-gradient(circle,rgba(79,195,247,0.05),transparent)', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-        <div style={{ maxWidth: '680px', margin: '0 auto', textAlign: 'center', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '20px' }}><div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} /><span style={{ color: '#4FC3F7', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700' }}>The Vision</span><div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} /></div>
-          <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '32px' : 'clamp(32px,4vw,52px)', color: '#F8FAFC', marginBottom: '20px', lineHeight: '1.15', letterSpacing: '-0.5px' }}>{lang === 'en' ? 'What I believe Somalia can become.' : 'Waxa aan aaminahay in Soomaaliya noqon karto.'}</h1>
-          <p style={{ color: '#475569', fontSize: '16px', lineHeight: '1.8', maxWidth: '500px', margin: '0 auto' }}>{lang === 'en' ? 'This is a living document. It will grow as my thinking matures. Nothing here is final.' : 'Waa dukumiinti nool. Wuu kordhayaa marka fikradaydu ay bislaato.'}</p>
+      <ReadingProgress />
+      {post.thumbnail_url && (
+        <div style={{ width: '100%', height: isMobile ? '240px' : '420px', overflow: 'hidden', position: 'relative' }}>
+          <img src={post.thumbnail_url} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom,transparent 50%,rgba(0,0,0,0.6))' }} />
         </div>
-      </div>
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: isMobile ? '44px 20px' : '68px 24px' }}>
-        {[
-          { title: lang==='en' ? 'On Technology & Governance' : 'Teknolojiyada & Xukuumadda', body: lang==='en' ? "Somalia\'s path forward runs through digital infrastructure. A government that invests in cybersecurity, digital identity, and transparent e-governance will be a government its people can actually trust." : "Jidka Soomaaliya wuxuu maraa kaabayaasha dijital." },
-          { title: lang==='en' ? 'On the Diaspora' : 'Diaspora-da', body: lang==='en' ? "The millions of Somalis living abroad are not a footnote. They are an untapped engine. My vision includes building real, structural channels through which diaspora talent, capital, and experience flow back into Somalia." : "Malaayin Soomaali ah oo dibadda ku nool kuma aha qoraal kooban. Waa matoor aan la isticmaalin." },
-          { title: lang==='en' ? 'On Unity' : 'Midnimada', body: lang==='en' ? "Unity does not come from forcing agreement. It comes from building institutions people trust, systems that are fair, and leadership that listens." : "Midnimadu kuma timaado in dadka lagu kalliftey inay is waafaqaan." },
-        ].map((item, i) => (
-          <AnimatedDiv key={i} delay={i*0.1} style={{ marginBottom: '52px', paddingBottom: '52px', borderBottom: `1px solid ${t.border}` }}>
-            <div style={{ display: 'flex', gap: '24px' }}>
-              <div style={{ width: '2px', background: 'linear-gradient(to bottom,#4FC3F7,transparent)', borderRadius: '2px', flexShrink: 0, marginTop: '6px' }} />
-              <div>
-                <h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '22px' : '28px', color: t.charcoal, marginBottom: '16px', letterSpacing: '-0.3px' }}>{item.title}</h2>
-                <p style={{ color: t.body, fontSize: isMobile ? '15px' : '17px', lineHeight: '1.9' }}>{item.body}</p>
-              </div>
-            </div>
-          </AnimatedDiv>
-        ))}
-        <AnimatedDiv><h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '24px' : '32px', color: t.charcoal, marginBottom: '40px', letterSpacing: '-0.3px' }}>The Roadmap to 2040</h2></AnimatedDiv>
-        {timeline && timeline.map((phase, i) => (
-          <AnimatedDiv key={i} delay={i*0.07}>
-            <div style={{ display: 'flex', gap: isMobile ? '16px' : '28px', marginBottom: '36px', alignItems: 'flex-start' }}>
-              <div style={{ flexShrink: 0, width: isMobile ? '80px' : '100px', textAlign: 'right' }}>
-                <div style={{ color: '#4FC3F7', fontSize: '12px', fontWeight: '700' }}>{phase.year}</div>
-                <div style={{ color: t.mid, fontSize: '11px', marginTop: '2px' }}>{phase.phase}</div>
-              </div>
-              <div style={{ width: '1px', background: t.border, flexShrink: 0, marginTop: '4px', alignSelf: 'stretch' }} />
-              <div>{phase.items.map((item, j) => (<div key={j} style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'flex-start' }}><div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#D97706', flexShrink: 0, marginTop: '7px' }} /><span style={{ color: t.body, fontSize: '14px', lineHeight: '1.6' }}>{item}</span></div>))}</div>
-            </div>
-          </AnimatedDiv>
-        ))}
-        <Newsletter T={t} />
-      </div>
-    </div>
-  );
-};
+      )}
+      <div style={{ maxWidth: '720px', margin: '0 auto', padding: isMobile ? '32px 20px' : '56px 24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+          <span onClick={() => setPage('blog')} style={{ color: '#4FC3F7', cursor: 'pointer', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '500' }}>← Back to Blog</span>
+          <button onClick={() => user ? onSavePost(post.id) : onShowAuth()} style={{ background: isSaved ? 'rgba(79,195,247,0.1)' : 'none', border: isSaved ? '1px solid rgba(79,195,247,0.2)' : `1px solid ${t.border}`, borderRadius: '8px', padding: '7px 14px', cursor: 'pointer', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px', color: isSaved ? '#4FC3F7' : t.mid, transition: 'all 0.2s', fontFamily: "'DM Sans', sans-serif", fontWeight: '500' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor='#4FC3F7'; e.currentTarget.style.color='#4FC3F7'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor=isSaved?'rgba(79,195,247,0.2)':t.border; e.currentTarget.style.color=isSaved?'#4FC3F7':t.mid; }}
+          >🔖 {isSaved ? 'Saved' : 'Save'}</button>
+        </div>
 
-const StoryPage = ({ lang, T }) => {
-  const t = T;
-  const isMobile = useIsMobile();
-  return (
-    <div style={{ paddingTop: '64px' }}>
-      <div style={{ background: 'linear-gradient(160deg,#040C16 0%,#0A0F1A 100%)', padding: isMobile ? '52px 20px 44px' : '88px 24px 72px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}><div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} /><span style={{ color: '#4FC3F7', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700' }}>About</span></div>
-          <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '36px' : '56px', color: '#F8FAFC', letterSpacing: '-1px', lineHeight: '1.1', marginBottom: '20px' }}>{lang === 'en' ? 'My Story' : 'Taariikhda'}</h1>
-          <p style={{ color: '#64748B', fontSize: isMobile ? '15px' : '18px', lineHeight: '1.8', maxWidth: '560px' }}>{lang === 'en' ? "I am Somali-American from Columbus, Ohio. Cybersecurity professional. Community builder. Someone who believes deeply in Somalia." : "Waxaan ahay Soomaali-Maraykan ah oo ka ah Columbus, Ohio."}</p>
+        <div style={{ marginBottom: '12px' }}><Tag T={t} color="#4FC3F7">Essay</Tag></div>
+        <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '28px' : 'clamp(28px,4vw,42px)', color: t.charcoal, margin: '16px 0', lineHeight: '1.18', letterSpacing: '-0.5px' }}>
+          {lang === 'en' ? post.title : (post.title_so || post.title)}
+        </h1>
+        <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px' }}>
+          <span style={{ color: t.mid, fontSize: '13px' }}>{post.date}</span>
+          <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: t.border }} />
+          <span style={{ color: t.mid, fontSize: '13px' }}>{getRT(content_body)}</span>
+          {(post.views || 0) > 0 && <><div style={{ width: '3px', height: '3px', borderRadius: '50%', background: t.border }} /><span style={{ color: t.mid, fontSize: '13px' }}>{fmt(post.views)} reads</span></>}
+          {post.category && <Tag T={t}>{post.category}</Tag>}
         </div>
-      </div>
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: isMobile ? '44px 20px' : '68px 24px' }}>
-        <AnimatedDiv style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1.6fr', gap: isMobile ? '28px' : '48px', alignItems: 'start', marginBottom: '64px', paddingBottom: '64px', borderBottom: `1px solid ${t.border}` }}>
-          <div>
-            <div style={{ width: '100%', paddingBottom: '100%', borderRadius: '16px', background: `linear-gradient(135deg,${t.soft},${t.lightBlue})`, position: 'relative', overflow: 'hidden', border: `1px solid ${t.border}` }}>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ fontSize: '48px' }}>🇸🇴</div>
-                <span style={{ color: t.mid, fontSize: '12px', letterSpacing: '1px' }}>Photo coming soon</span>
-              </div>
-            </div>
-            <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {[['Based in','Columbus, Ohio'],['Field','Cybersecurity & IT'],['Education','MS Cybersecurity, WGU'],['Goal','Somalia 2040']].map(item => (
-                <div key={item[0]} style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
-                  <span style={{ color: t.mid, fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', minWidth: '72px', textTransform: 'uppercase' }}>{item[0]}</span>
-                  <span style={{ color: t.charcoal, fontSize: '13px' }}>{item[1]}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p style={{ color: t.body, fontSize: isMobile ? '15px' : '17px', lineHeight: '1.95', marginBottom: '20px' }}>{lang === 'en' ? "I was born into the Somali diaspora, raised in Columbus, Ohio, shaped by two worlds. American by upbringing, Somali by roots, and restless by nature." : "Waxaan ku dhashay diaspora Soomaaliyeed, ku koray Columbus, Ohio."}</p>
-            <p style={{ color: t.body, fontSize: isMobile ? '15px' : '17px', lineHeight: '1.95', marginBottom: '20px' }}>{lang === 'en' ? "My career has been in cybersecurity and technology. I hold an AS in Computer Science from Columbus State, a BS in Business from Franklin University, and am completing an MS in Cybersecurity at Western Governors University." : "Shaqadeyda waxay ahayd ammaanka dijital iyo teknoolajiyada."}</p>
-            <p style={{ color: t.body, fontSize: isMobile ? '15px' : '17px', lineHeight: '1.95' }}>{lang === 'en' ? "Alongside that I have been building Kulan Group, platforms serving education, cybersecurity, and community for the Somali diaspora. Every project I build is practice for something bigger." : "Xagga kale waxaan dhisayaa Kulan Group."}</p>
-          </div>
-        </AnimatedDiv>
-        {[
-          { year: '2040', color: '#4FC3F7', heading: lang==='en' ? 'Why Somalia?' : 'Sababta Soomaaliya?', body: lang==='en' ? "It started as a feeling. A quiet but persistent sense that Somalia\'s future matters, and that people who understand technology, governance, and community have something real to offer. Somalia 2040 is my way of thinking in public." : "Waxay bilaabatay dareen. Maaha qorshe." },
-          { year: 'Now', color: '#D97706', heading: lang==='en' ? 'What I am building toward' : 'Waxa aan doonayo', body: lang==='en' ? "A Somali political leader who understands technology, the diaspora, and the next generation. I am building that track record one project at a time." : "Hogaamiye siyaasadeed oo fahma teknoolajiyada, diaspora-da." },
-          { year: 'Core', color: '#10B981', heading: lang==='en' ? 'What drives me' : 'Waxa i dhaqaajiyo', body: lang==='en' ? "The diaspora gave me education, perspective, and opportunity. Somalia gave me identity, purpose, and the weight of belonging. I feel a responsibility to bridge those two things." : "Diaspora-da ayaa ii siisay waxbarasho. Soomaaliya ayaa ii siisay aqoonsiga." },
-        ].map((s, i) => (
-          <AnimatedDiv key={i} delay={i*0.1} style={{ display: 'flex', gap: isMobile ? '16px' : '28px', marginBottom: '48px', paddingBottom: '48px', borderBottom: `1px solid ${t.border}` }}>
-            <div style={{ flexShrink: 0, width: isMobile ? '52px' : '64px', textAlign: 'right' }}><div style={{ color: s.color, fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px' }}>{s.year}</div></div>
-            <div style={{ width: '2px', background: `linear-gradient(to bottom,${s.color},transparent)`, borderRadius: '2px', flexShrink: 0, marginTop: '3px' }} />
-            <div>
-              <h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '22px' : '26px', color: t.charcoal, marginBottom: '14px', letterSpacing: '-0.3px' }}>{s.heading}</h2>
-              <p style={{ color: t.body, fontSize: isMobile ? '15px' : '16px', lineHeight: '1.9' }}>{s.body}</p>
-            </div>
-          </AnimatedDiv>
-        ))}
-        <AnimatedDiv>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px' }}><div style={{ height: '2px', width: '28px', background: '#D97706' }} /><span style={{ color: t.mid, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '600' }}>The Journey</span></div>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: '12px', marginBottom: '48px' }}>
-            {[['2','Degrees completed'],['MS','Currently studying'],['14+','Projects built'],['2040','The goal year']].map(item => (
-              <div key={item[0]} style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
-                <div style={{ fontFamily: 'Playfair Display', fontSize: '28px', color: '#4FC3F7', fontWeight: '700', marginBottom: '6px' }}>{item[0]}</div>
-                <div style={{ color: t.mid, fontSize: '12px', lineHeight: '1.4' }}>{item[1]}</div>
-              </div>
-            ))}
-          </div>
-        </AnimatedDiv>
-        <Newsletter T={t} />
-      </div>
-    </div>
-  );
-};
 
-const ReadingPage = ({ reading, lang, T }) => {
-  const t = T;
-  const isMobile = useIsMobile();
-  return (
-    <div style={{ paddingTop: '64px' }}>
-      <div style={{ background: 'linear-gradient(160deg,#040C16 0%,#0A0F1A 100%)', padding: isMobile ? '48px 20px 40px' : '72px 24px 56px' }}>
-        <div style={{ maxWidth: '780px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}><div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} /><span style={{ color: '#4FC3F7', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700' }}>Library</span></div>
-          <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '36px' : '56px', color: '#F8FAFC', letterSpacing: '-1px', lineHeight: '1.1', marginBottom: '16px' }}>{lang === 'en' ? 'Reading List' : 'Buugaagta'}</h1>
-          <p style={{ color: '#475569', fontSize: '15px', lineHeight: '1.7' }}>{lang === 'en' ? 'Books and resources shaping my thinking on Somalia, governance, and leadership.' : 'Buugaag iyo xogaha qaabeeya fikradayda.'}</p>
-        </div>
-      </div>
-      <div style={{ maxWidth: '780px', margin: '0 auto', padding: isMobile ? '40px 20px' : '60px 24px' }}>
-        {[...new Set(reading.map(r => r.category))].map(cat => (
-          <div key={cat} style={{ marginBottom: '48px' }}>
-            <AnimatedDiv><div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}><div style={{ height: '2px', width: '24px', background: '#D97706' }} /><span style={{ color: t.mid, fontSize: '10px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: '700' }}>{cat}</span></div></AnimatedDiv>
-            {reading.filter(r => r.category === cat).map((book, i) => (
-              <AnimatedDiv key={book.id} delay={i*0.06}>
-                <div style={{ background: t.soft, borderRadius: '12px', padding: '20px 24px', marginBottom: '12px', borderLeft: '3px solid #4FC3F7', transition: 'transform 0.2s' }} onMouseEnter={e => e.currentTarget.style.transform='translateX(4px)'} onMouseLeave={e => e.currentTarget.style.transform='translateX(0)'}>
-                  <div style={{ fontWeight: '600', color: t.charcoal, fontSize: '16px', marginBottom: '3px' }}>{book.title}</div>
-                  <div style={{ color: '#4FC3F7', fontSize: '13px', marginBottom: '8px', fontWeight: '500' }}>{book.author}</div>
-                  <p style={{ color: t.body, fontSize: '13px', lineHeight: '1.7' }}>{book.note}</p>
-                </div>
-              </AnimatedDiv>
-            ))}
-          </div>
-        ))}
-        <Newsletter T={t} />
-      </div>
-    </div>
-  );
-};
+        <ShareBtns title={lang === 'en' ? post.title : (post.title_so || post.title)} T={t} />
+        <div style={{ height: '1px', background: t.border, margin: '28px 0' }} />
 
-const ConnectPage = ({ voices, onVoiceSubmit, lang, monthlyQ, T }) => {
-  const t = T;
-  const isMobile = useIsMobile();
-  const [form, setForm] = useState({ author: '', location: '', text: '' });
-  const [submitted, setSubmitted] = useState(false);
-  const featured = voices.filter(v => v.featured);
-  const others = voices.filter(v => !v.featured);
-  const iStyle = { width: '100%', padding: '11px 13px', border: `1px solid ${t.border}`, borderRadius: '8px', fontSize: '14px', background: t.inputBg, color: t.charcoal, outline: 'none' };
-  const submit = async () => { if (!form.author || !form.text) return; await onVoiceSubmit({ ...form, featured: false, date: new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }) }); setSubmitted(true); };
-  return (
-    <div style={{ paddingTop: '64px' }}>
-      <div style={{ background: 'linear-gradient(160deg,#040C16 0%,#0A0F1A 100%)', padding: isMobile ? '48px 20px 40px' : '72px 24px 56px' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '20px' }}><div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} /><span style={{ color: '#4FC3F7', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700' }}>Community</span><div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} /></div>
-          <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '32px' : '48px', color: '#F8FAFC', letterSpacing: '-0.5px', lineHeight: '1.1', marginBottom: '16px' }}>{lang === 'en' ? "Let\'s Connect" : 'Aan Xiriirno'}</h1>
-          <p style={{ color: '#475569', fontSize: '15px', lineHeight: '1.8' }}>{lang === 'en' ? 'This space belongs to every Somali who has something to say.' : 'Meesha waxay u tahay Soomaali kasta oo wax yidhaahda.'}</p>
-        </div>
-      </div>
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '40px 20px' : '60px 24px' }}>
-        {monthlyQ && (
-          <AnimatedDiv>
-            <div style={{ background: t.dark ? '#040C16' : '#0A0F1A', border: `1px solid ${t.border}`, borderRadius: '16px', padding: isMobile ? '28px 22px' : '44px', marginBottom: '48px', textAlign: 'center' }}>
-              <div style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '700' }}>Monthly Question</div>
-              <p style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '20px' : '26px', color: '#F8FAFC', lineHeight: '1.5', maxWidth: '600px', margin: '0 auto', fontStyle: 'italic' }}>"{monthlyQ}"</p>
-            </div>
-          </AnimatedDiv>
+        {content_body && (
+          isHTML(content_body)
+            ? <div className="post-content" dangerouslySetInnerHTML={{ __html: content_body }} />
+            : content_body.split('\n\n').map((para, i) => <p key={i} style={{ color: t.body, fontSize: isMobile ? '17px' : '18px', lineHeight: '1.95', marginBottom: '1.5rem' }}>{para}</p>)
         )}
-        {featured.length > 0 && (
-          <div style={{ marginBottom: '48px' }}>
-            <AnimatedDiv><div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}><div style={{ height: '2px', width: '24px', background: '#D97706' }} /><span style={{ color: t.mid, fontSize: '10px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: '700' }}>Featured Voices</span></div></AnimatedDiv>
-            {featured.map((v, i) => (
-              <AnimatedDiv key={v.id} delay={i*0.07}>
-                <div style={{ background: t.soft, borderRadius: '12px', padding: '24px 28px', marginBottom: '14px', borderLeft: '3px solid #D97706' }}>
-                  <p style={{ color: t.charcoal, fontSize: isMobile ? '15px' : '17px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '12px' }}>"{v.text}"</p>
-                  <span style={{ color: t.mid, fontSize: '13px', fontWeight: '500' }}>{v.author}{v.location ? ` · ${v.location}` : ''}</span>
-                </div>
-              </AnimatedDiv>
-            ))}
+
+        {post.tags && post.tags.length > 0 && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '32px' }}>
+            {post.tags.map(tag => <Tag key={tag} T={t}>#{tag}</Tag>)}
           </div>
         )}
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '14px', marginBottom: '48px' }}>
-          {others.map((v, i) => (
-            <AnimatedDiv key={v.id} delay={i*0.05}>
-              <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px 22px' }}>
-                <p style={{ color: t.body, fontSize: '14px', lineHeight: '1.75', marginBottom: '12px', fontStyle: 'italic' }}>"{v.text}"</p>
-                <span style={{ color: t.mid, fontSize: '12px', fontWeight: '500' }}>{v.author}{v.location ? ` · ${v.location}` : ''}</span>
+
+        <div style={{ height: '1px', background: t.border, margin: '40px 0 28px' }} />
+        <ShareBtns title={lang === 'en' ? post.title : (post.title_so || post.title)} T={t} />
+
+        {/* Comments */}
+        <div style={{ marginTop: '56px' }}>
+          <h3 style={{ fontFamily: 'Playfair Display', fontSize: '24px', color: t.charcoal, marginBottom: '28px', letterSpacing: '-0.3px' }}>
+            Responses <span style={{ color: t.mid, fontSize: '18px' }}>({comments.length})</span>
+          </h3>
+          {comments.map(c => (
+            <div key={c.id} style={{ background: t.soft, borderRadius: '12px', padding: '20px 22px', marginBottom: '14px', borderLeft: `2px solid ${t.border}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '4px' }}>
+                <span style={{ fontWeight: '600', color: t.charcoal, fontSize: '14px' }}>{c.author}</span>
+                <span style={{ color: t.mid, fontSize: '12px' }}>{c.date}</span>
               </div>
-            </AnimatedDiv>
+              <p style={{ color: t.body, fontSize: '14px', lineHeight: '1.7' }}>{c.text}</p>
+            </div>
           ))}
-        </div>
-        <AnimatedDiv>
-          <div style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '16px', padding: isMobile ? '28px 22px' : '40px' }}>
-            <h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '24px' : '30px', color: t.charcoal, marginBottom: '8px', letterSpacing: '-0.3px' }}>Share Your Voice</h2>
-            <p style={{ color: t.mid, fontSize: '14px', marginBottom: '28px', lineHeight: '1.6' }}>Submitted voices are reviewed before going live.</p>
+          <div style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '14px', padding: isMobile ? '24px' : '32px', marginTop: '28px' }}>
+            <h4 style={{ fontFamily: 'Playfair Display', fontSize: '20px', color: t.charcoal, marginBottom: '20px' }}>Leave a response</h4>
+            {!user && (
+              <div style={{ background: t.lightBlue, borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <span style={{ color: t.blueDark, fontSize: '13px' }}>Sign in to comment with your name.</span>
+                <button onClick={onShowAuth} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '6px 14px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>Sign In</button>
+              </div>
+            )}
             {submitted ? (
-              <div style={{ background: '#ECFDF5', border: '1px solid #6EE7B7', borderRadius: '8px', padding: '16px 20px', color: '#065F46', fontSize: '14px', fontWeight: '500' }}>Thank you for sharing. Your voice has been submitted for review.</div>
+              <p style={{ color: '#059669', fontSize: '14px', fontWeight: '500' }}>Your response has been submitted for review. Thank you.</p>
             ) : (
               <>
-                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                  <input value={form.author} onChange={e => setForm({...form, author: e.target.value})} placeholder="Your name *" style={iStyle} />
-                  <input value={form.location} onChange={e => setForm({...form, location: e.target.value})} placeholder="Your city / country" style={iStyle} />
-                </div>
-                <textarea value={form.text} onChange={e => setForm({...form, text: e.target.value})} placeholder="Your thoughts on Somalia, politics, or the future..." rows={5} style={{ ...iStyle, resize: 'vertical', marginBottom: '16px' }} />
-                <Btn onClick={submit} T={t}>Submit Your Voice</Btn>
+                <input value={comment.author} onChange={e => setComment({...comment, author: e.target.value})} placeholder="Your name" style={iStyle} />
+                <textarea value={comment.text} onChange={e => setComment({...comment, text: e.target.value})} placeholder="Share your thoughts..." rows={4} style={{ ...iStyle, resize: 'vertical', marginBottom: '14px' }} />
+                <Btn onClick={handleSubmit} T={t}>Submit Response</Btn>
               </>
             )}
           </div>
-        </AnimatedDiv>
+        </div>
         <Newsletter T={t} />
       </div>
     </div>
   );
 };
-
 const RTE = ({ value, onChange, T }) => {
   const t = T || getT(false);
   const ref = useRef(null);
@@ -852,6 +681,206 @@ const AdminMedia = ({ T, onSelect }) => {
 };
 
 /* ─── ADMIN LOGIN ─────────────────────────────────────────────── */
+/* ─── AUTH MODAL ───────────────────────────────────────────────── */
+const AuthModal = ({ onClose, onSuccess, T }) => {
+  const t = T;
+  const [mode, setMode] = useState('signin'); // signin | signup
+  const [form, setForm] = useState({ email: '', password: '', name: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const iStyle = {
+    width: '100%', padding: '11px 13px', border: `1.5px solid ${error ? '#EF4444' : t.border}`,
+    borderRadius: '8px', fontSize: '14px', marginBottom: '12px',
+    outline: 'none', background: t.inputBg, color: t.charcoal,
+    fontFamily: "'DM Sans', sans-serif",
+  };
+
+  const submit = async () => {
+    if (!form.email || !form.password) { setError('Please fill in all fields.'); return; }
+    if (mode === 'signup' && !form.name) { setError('Please enter your name.'); return; }
+    setLoading(true); setError('');
+    const result = mode === 'signup'
+      ? await signUp(form.email, form.password, form.name)
+      : await signIn(form.email, form.password);
+    setLoading(false);
+    if (result.error) { setError(result.error.message); return; }
+    onSuccess(result.user);
+    onClose();
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="fade-in" style={{ background: t.card, borderRadius: '20px', padding: '40px', width: '100%', maxWidth: '400px', border: `1px solid ${t.border}`, position: 'relative' }}>
+        <button onClick={onClose} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: t.mid, fontSize: '22px', lineHeight: 1 }}>×</button>
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+          <StarLogo size={40} />
+          <h2 style={{ fontFamily: 'Playfair Display', fontSize: '22px', color: t.charcoal, marginTop: '12px', marginBottom: '4px', letterSpacing: '-0.3px' }}>
+            {mode === 'signin' ? 'Welcome back' : 'Join Somalia 2040'}
+          </h2>
+          <p style={{ color: t.mid, fontSize: '13px' }}>
+            {mode === 'signin' ? 'Sign in to save posts and join the conversation.' : 'Create an account to save posts and share your voice.'}
+          </p>
+        </div>
+
+        {mode === 'signup' && (
+          <>
+            <label style={{ color: t.mid, fontSize: '11px', display: 'block', marginBottom: '4px', fontWeight: '700', letterSpacing: '0.5px' }}>YOUR NAME</label>
+            <input value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="How should we call you?" style={iStyle} />
+          </>
+        )}
+        <label style={{ color: t.mid, fontSize: '11px', display: 'block', marginBottom: '4px', fontWeight: '700', letterSpacing: '0.5px' }}>EMAIL</label>
+        <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="your@email.com" style={iStyle} onKeyDown={e => e.key === 'Enter' && submit()} />
+        <label style={{ color: t.mid, fontSize: '11px', display: 'block', marginBottom: '4px', fontWeight: '700', letterSpacing: '0.5px' }}>PASSWORD</label>
+        <input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} placeholder="••••••••" style={{ ...iStyle, letterSpacing: '3px' }} onKeyDown={e => e.key === 'Enter' && submit()} />
+
+        {error && <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '8px', padding: '10px 13px', color: '#DC2626', fontSize: '13px', marginBottom: '12px' }}>{error}</div>}
+
+        <button onClick={submit} disabled={loading} style={{ width: '100%', background: '#4FC3F7', color: '#0A0F1A', border: 'none', padding: '13px', borderRadius: '8px', fontSize: '14px', fontWeight: '700', cursor: loading ? 'not-allowed' : 'pointer', marginBottom: '16px', opacity: loading ? 0.7 : 1, transition: 'all 0.2s' }}>
+          {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : 'Create Account'}
+        </button>
+
+        <p style={{ textAlign: 'center', color: t.mid, fontSize: '13px' }}>
+          {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
+          <span onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setError(''); }} style={{ color: '#4FC3F7', cursor: 'pointer', fontWeight: '600' }}>
+            {mode === 'signin' ? 'Sign up' : 'Sign in'}
+          </span>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+/* ─── USER MENU ────────────────────────────────────────────────── */
+const UserMenu = ({ user, profile, onSignOut, onViewProfile, T }) => {
+  const t = T;
+  const [open, setOpen] = useState(false);
+  const initials = (profile?.display_name || user?.email || 'U').charAt(0).toUpperCase();
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <div onClick={() => setOpen(!open)} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg,#4FC3F7,#0284C7)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#FFF', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>
+        {initials}
+      </div>
+      {open && (
+        <div className="slide-down" style={{ position: 'absolute', top: '40px', right: 0, background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '8px', minWidth: '180px', zIndex: 200, boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
+          <div style={{ padding: '8px 12px', marginBottom: '4px' }}>
+            <div style={{ color: t.charcoal, fontSize: '13px', fontWeight: '600' }}>{profile?.display_name || 'Reader'}</div>
+            <div style={{ color: t.mid, fontSize: '11px' }}>{user?.email}</div>
+          </div>
+          <div style={{ height: '1px', background: t.border, margin: '4px 0' }} />
+          {[
+            { label: '👤 My Profile', action: () => { onViewProfile(); setOpen(false); } },
+            { label: '🔖 Saved Posts', action: () => { onViewProfile(); setOpen(false); } },
+          ].map(item => (
+            <div key={item.label} onClick={item.action} style={{ padding: '9px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: t.charcoal, transition: 'background 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.background = t.soft}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >{item.label}</div>
+          ))}
+          <div style={{ height: '1px', background: t.border, margin: '4px 0' }} />
+          <div onClick={() => { onSignOut(); setOpen(false); }} style={{ padding: '9px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: '#EF4444', transition: 'background 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#FEF2F2'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >← Sign out</div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ─── PROFILE PAGE ─────────────────────────────────────────────── */
+const ProfilePage = ({ user, profile, savedPosts, posts, onUpdateProfile, onUnsave, T }) => {
+  const t = T;
+  const isMobile = useIsMobile();
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ display_name: profile?.display_name || '', bio: profile?.bio || '', location: profile?.location || '' });
+  const [saving, setSaving] = useState(false);
+  const saved = posts.filter(p => savedPosts.includes(p.id));
+  const iStyle = { width: '100%', padding: '10px 12px', border: `1px solid ${t.border}`, borderRadius: '8px', fontSize: '14px', background: t.inputBg, color: t.charcoal, outline: 'none', marginBottom: '10px', fontFamily: "'DM Sans', sans-serif" };
+
+  const save = async () => {
+    setSaving(true);
+    await onUpdateProfile(form);
+    setSaving(false);
+    setEditing(false);
+  };
+
+  return (
+    <div style={{ paddingTop: '64px' }}>
+      <div style={{ background: 'linear-gradient(160deg,#040C16 0%,#0A0F1A 100%)', padding: isMobile ? '48px 20px 40px' : '72px 24px 56px' }}>
+        <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} />
+            <span style={{ color: '#4FC3F7', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700' }}>Profile</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+            <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'linear-gradient(135deg,#4FC3F7,#0284C7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', fontWeight: '700', color: '#FFF', flexShrink: 0 }}>
+              {(profile?.display_name || user?.email || 'U').charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '28px' : '36px', color: '#F8FAFC', letterSpacing: '-0.5px', lineHeight: '1.1' }}>{profile?.display_name || 'Reader'}</h1>
+              <p style={{ color: '#475569', fontSize: '14px', marginTop: '4px' }}>{user?.email}</p>
+              {profile?.location && <p style={{ color: '#4FC3F7', fontSize: '13px', marginTop: '4px' }}>📍 {profile.location}</p>}
+            </div>
+          </div>
+          {profile?.bio && <p style={{ color: '#64748B', fontSize: '15px', lineHeight: '1.7', marginTop: '20px', maxWidth: '480px' }}>{profile.bio}</p>}
+        </div>
+      </div>
+
+      <div style={{ maxWidth: '700px', margin: '0 auto', padding: isMobile ? '36px 20px' : '52px 24px' }}>
+        {/* Edit Profile */}
+        <div style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '14px', padding: '24px', marginBottom: '36px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: editing ? '20px' : '0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '3px', height: '16px', background: '#4FC3F7', borderRadius: '2px' }} />
+              <h3 style={{ fontFamily: 'Playfair Display', fontSize: '17px', color: t.charcoal }}>Edit Profile</h3>
+            </div>
+            {!editing && <Btn small outline onClick={() => setEditing(true)} T={t}>Edit</Btn>}
+          </div>
+          {editing && (
+            <>
+              <label style={{ color: t.mid, fontSize: '11px', display: 'block', marginBottom: '4px', fontWeight: '700', letterSpacing: '0.5px' }}>DISPLAY NAME</label>
+              <input value={form.display_name} onChange={e => setForm({...form, display_name: e.target.value})} placeholder="Your name" style={iStyle} />
+              <label style={{ color: t.mid, fontSize: '11px', display: 'block', marginBottom: '4px', fontWeight: '700', letterSpacing: '0.5px' }}>LOCATION</label>
+              <input value={form.location} onChange={e => setForm({...form, location: e.target.value})} placeholder="e.g. Columbus, Ohio" style={iStyle} />
+              <label style={{ color: t.mid, fontSize: '11px', display: 'block', marginBottom: '4px', fontWeight: '700', letterSpacing: '0.5px' }}>BIO</label>
+              <textarea value={form.bio} onChange={e => setForm({...form, bio: e.target.value})} placeholder="Tell us about yourself..." rows={3} style={{ ...iStyle, resize: 'vertical' }} />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <Btn small onClick={save} T={t} disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</Btn>
+                <Btn small outline onClick={() => setEditing(false)} T={t}>Cancel</Btn>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Saved Posts */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+            <div style={{ height: '2px', width: '28px', background: '#D97706' }} />
+            <span style={{ color: t.mid, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '600' }}>Saved Posts ({saved.length})</span>
+          </div>
+          {saved.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px', background: t.soft, borderRadius: '12px', border: `1px solid ${t.border}` }}>
+              <div style={{ fontSize: '32px', marginBottom: '10px' }}>🔖</div>
+              <p style={{ color: t.mid, fontSize: '14px' }}>No saved posts yet.</p>
+              <p style={{ color: t.mid, fontSize: '13px', marginTop: '4px' }}>Click the bookmark icon on any post to save it here.</p>
+            </div>
+          ) : saved.map((post, i) => (
+            <div key={post.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: `1px solid ${t.border}`, gap: '12px' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ color: t.charcoal, fontSize: '14px', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{post.title}</div>
+                <div style={{ color: t.mid, fontSize: '12px', marginTop: '2px' }}>{post.date} · {getRT(post.content)}</div>
+              </div>
+              <button onClick={() => onUnsave(post.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.mid, fontSize: '18px', padding: '4px', flexShrink: 0 }} title="Remove from saved">🔖</button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AdminLogin = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
@@ -1426,6 +1455,10 @@ export default function App() {
   const [adminLoggedIn, setAdminLoggedIn] = useState(() => localStorage.getItem('s2040_admin') === 'true');
   const [adminTab, setAdminTab] = useState(() => localStorage.getItem('s2040_tab') || 'dash');
   const [loading, setLoading]   = useState(true);
+  const [user, setUser]         = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [savedPostIds, setSavedPostIds] = useState([]);
+  const [showAuth, setShowAuth] = useState(false);
 
   const T = getT(dark);
 
@@ -1457,7 +1490,27 @@ export default function App() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadAll(); trackEvent('page_view', { page: 'home' }); }, []);
+  useEffect(() => {
+    loadAll();
+    trackEvent('page_view', { page: 'home' });
+    getSession().then(async (session) => {
+      if (session?.user) {
+        setUser(session.user);
+        getProfile(session.user.id).then(setUserProfile);
+        getUserSavedPosts(session.user.id).then(setSavedPostIds);
+      }
+    });
+    // Restore auth session
+    getSession().then(async (session) => {
+      if (session?.user) {
+        setUser(session.user);
+        const profile = await getProfile(session.user.id);
+        setUserProfile(profile);
+        const saved = await getUserSavedPosts(session.user.id);
+        setSavedPostIds(saved);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     if (page === 'post' && currentPost && posts.length > 0) {
@@ -1465,6 +1518,36 @@ export default function App() {
       if (found) setCurrentPost(found);
     }
   }, [posts]);
+
+  const handleAuthSuccess = async (authUser) => {
+    setUser(authUser);
+    const profile = await getProfile(authUser.id);
+    setUserProfile(profile);
+    const saved = await getUserSavedPosts(authUser.id);
+    setSavedPostIds(saved);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    setUser(null); setUserProfile(null); setSavedPostIds([]);
+  };
+
+  const handleSavePost = async (postId) => {
+    if (!user) return;
+    if (savedPostIds.includes(postId)) {
+      await unsavePostForUser(user.id, postId);
+      setSavedPostIds(prev => prev.filter(id => id !== postId));
+    } else {
+      await savePostForUser(user.id, postId);
+      setSavedPostIds(prev => [...prev, postId]);
+    }
+  };
+
+  const handleUpdateProfile = async (updates) => {
+    if (!user) return;
+    const updated = await updateProfile(user.id, updates);
+    if (updated) setUserProfile(updated);
+  };
 
   const adminLogin  = () => { setAdminLoggedIn(true); localStorage.setItem('s2040_admin', 'true'); };
   const adminLogout = () => { setAdminLoggedIn(false); localStorage.removeItem('s2040_admin'); nav('home'); };
@@ -1532,10 +1615,11 @@ export default function App() {
           <>
             {page === 'home'    && <HomePage posts={posts} lang={lang} word={word} setPage={nav} setCurrentPost={hOpenPost} voices={voices} dark={dark} T={T} />}
             {page === 'blog'    && <BlogPage posts={posts} lang={lang} setPage={nav} setCurrentPost={hOpenPost} T={T} />}
-            {page === 'post'    && activePost && <PostPage post={activePost} lang={lang} setPage={nav} onCommentSubmit={hAddComment} T={T} />}
+            {page === 'post'    && activePost && <PostPage post={activePost} lang={lang} setPage={nav} onCommentSubmit={hAddComment} user={user} savedPostIds={savedPostIds} onSavePost={handleSavePost} onShowAuth={() => setShowAuth(true)} T={T} />}
             {page === 'vision'  && <VisionPage lang={lang} timeline={timeline} T={T} />}
             {page === 'story'   && <StoryPage lang={lang} T={T} />}
             {page === 'reading' && <ReadingPage reading={reading} lang={lang} T={T} />}
+            {page === 'profile' && user && <ProfilePage user={user} profile={userProfile} savedPosts={savedPostIds} posts={posts} onUpdateProfile={handleUpdateProfile} onUnsave={handleSavePost} T={T} />}
             {page === 'connect' && <ConnectPage voices={voices} onVoiceSubmit={hAddVoice} lang={lang} monthlyQ={monthlyQ} T={T} />}
             {page === 'about'   && <MarketingPage setPage={nav} lang={lang} voices={voices} posts={posts} T={T} />}
           </>
@@ -1544,6 +1628,7 @@ export default function App() {
         <Footer setPage={nav} T={T} siteTitle={siteTitle} />
         <div onClick={() => nav('admin')} style={{ position: 'fixed', bottom: '20px', right: '20px', background: '#040C16', color: '#4FC3F7', border: '1px solid #1A2D44', padding: '8px 14px', borderRadius: '30px', fontSize: '12px', cursor: 'pointer', boxShadow: '0 4px 24px rgba(0,0,0,0.4)', fontWeight: '600', zIndex: 50, transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.background = '#4FC3F7'; e.currentTarget.style.color = '#040C16'; }} onMouseLeave={e => { e.currentTarget.style.background = '#040C16'; e.currentTarget.style.color = '#4FC3F7'; }}>Admin</div>
         <BackToTop />
+        {showAuth && <AuthModal onClose={() => setShowAuth(false)} onSuccess={handleAuthSuccess} T={T} />}
       </div>
     </>
   );

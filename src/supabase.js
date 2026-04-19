@@ -251,3 +251,65 @@ export const publishScheduledPosts = async () => {
   }
   return data?.length || 0;
 };
+
+/* ─── AUTH ───────────────────────────────────────────────────── */
+export const signUp = async (email, password, displayName) => {
+  const { data, error } = await supabase.auth.signUp({
+    email, password,
+    options: { data: { display_name: displayName } }
+  });
+  if (error) return { error };
+  if (data.user) {
+    await supabase.from('somalia_profiles').upsert({
+      id: data.user.id,
+      display_name: displayName,
+      username: email.split('@')[0] + '_' + Math.random().toString(36).substr(2, 4),
+    });
+  }
+  return { user: data.user, session: data.session };
+};
+
+export const signIn = async (email, password) => {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return { error };
+  return { user: data.user, session: data.session };
+};
+
+export const signOut = async () => {
+  await supabase.auth.signOut();
+};
+
+export const getSession = async () => {
+  const { data } = await supabase.auth.getSession();
+  return data.session;
+};
+
+export const getProfile = async (userId) => {
+  const { data } = await supabase.from('somalia_profiles').select('*').eq('id', userId).single();
+  return data;
+};
+
+export const updateProfile = async (userId, updates) => {
+  const { data, error } = await supabase.from('somalia_profiles').update(updates).eq('id', userId).select();
+  if (error) console.error(error);
+  return data?.[0];
+};
+
+export const savePostForUser = async (userId, postId) => {
+  const { error } = await supabase.from('somalia_saved_posts').upsert({ user_id: userId, post_id: postId });
+  if (error) console.error(error);
+};
+
+export const unsavePostForUser = async (userId, postId) => {
+  await supabase.from('somalia_saved_posts').delete().eq('user_id', userId).eq('post_id', postId);
+};
+
+export const getUserSavedPosts = async (userId) => {
+  const { data } = await supabase.from('somalia_saved_posts').select('post_id').eq('user_id', userId);
+  return (data || []).map(r => r.post_id);
+};
+
+export const checkPostSaved = async (userId, postId) => {
+  const { data } = await supabase.from('somalia_saved_posts').select('id').eq('user_id', userId).eq('post_id', postId).single();
+  return !!data;
+};
