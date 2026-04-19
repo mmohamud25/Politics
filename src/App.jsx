@@ -698,9 +698,9 @@ const VisionPage = ({ lang, timeline, T }) => {
       </div>
       <div style={{ maxWidth: '780px', margin: '0 auto', padding: isMobile ? '28px 16px' : '48px 24px' }}>
         {[
-          { title: lang === 'en' ? 'On Technology & Governance' : 'Teknolojiyada & Xukuumadda', body: lang === 'en' ? "Somalia's path forward runs through digital infrastructure. A government that invests in cybersecurity, digital identity, and transparent e-governance will be a government its people can actually trust. I believe this is not optional. It is the foundation." : "Jidka Soomaaliya wuxuu maraa kaabayaasha dijital. Xukuumad ku maalgalisa ammaanka dijital waxay noqon doontaa mid dadkeeda aaminsan." },
+          { title: lang === 'en' ? 'On Technology & Governance' : 'Teknolojiyada & Xukuumadda', body: lang === 'en' ? "Somalia\'s path forward runs through digital infrastructure. A government that invests in cybersecurity, digital identity, and transparent e-governance will be a government its people can actually trust. I believe this is not optional. It is the foundation." : "Jidka Soomaaliya wuxuu maraa kaabayaasha dijital. Xukuumad ku maalgalisa ammaanka dijital waxay noqon doontaa mid dadkeeda aaminsan." },
           { title: lang === 'en' ? 'On the Diaspora' : 'Diaspora-da', body: lang === 'en' ? "The millions of Somalis living abroad are not a footnote. They are an untapped engine. My vision includes building real, structural channels through which diaspora talent, capital, and experience flow back into Somalia." : "Malaayin Soomaali ah oo dibadda ku nool kuma aha qoraal kooban. Waa matoor aan la isticmaalin." },
-          { title: lang === 'en' ? 'On Unity' : 'Midnimada', body: lang === 'en' ? "I don't believe unity comes from forcing people to agree. It comes from building institutions people trust, systems that are fair, and leadership that listens." : "Midnimadu kuma timaado in dadka lagu kalliftey inay is waafaqaan. Waxay ka timaaddaa dhisidda hay'adaha dadku aaminsan yihiin." },
+          { title: lang === 'en' ? 'On Unity' : 'Midnimada', body: lang === 'en' ? "I don\'t believe unity comes from forcing people to agree. It comes from building institutions people trust, systems that are fair, and leadership that listens." : "Midnimadu kuma timaado in dadka lagu kalliftey inay is waafaqaan. Waxay ka timaaddaa dhisidda hay'adaha dadku aaminsan yihiin." },
         ].map((item, i) => (
           <AnimatedDiv key={i} delay={i * 0.1} style={{ marginBottom: '36px', display: 'flex', gap: '16px' }}>
             <div style={{ width: '3px', background: '#4FC3F7', borderRadius: '2px', flexShrink: 0, marginTop: '6px' }} />
@@ -753,7 +753,7 @@ const StoryPage = ({ lang, T }) => {
           </h1>
           <p style={{ color: '#64748B', fontSize: isMobile ? '15px' : '18px', lineHeight: '1.8', maxWidth: '560px' }}>
             {lang === 'en'
-              ? 'A Somali-American from Columbus, Ohio. Cybersecurity professional. Community builder. And someone who believes deeply in Somalia's potential.'
+              ? 'A Somali-American from Columbus, Ohio. Cybersecurity professional. Community builder. And someone who believes deeply in Somalia\'s potential.'
               : 'Soomaali-Maraykan ah oo ka ah Columbus, Ohio. Xirfadlaha ammaanka dijital. Dhisaha bulshada.'}
           </p>
         </div>
@@ -809,7 +809,7 @@ const StoryPage = ({ lang, T }) => {
             year: '2040',
             heading: lang === 'en' ? 'Why Somalia?' : 'Sababta Soomaaliya?',
             body: lang === 'en'
-              ? "It started as a feeling. Not a plan, not a calculation. A quiet but persistent sense that Somalia's future matters, and that people who understand technology, governance, and community have something real to offer. I am still figuring this out. Somalia 2040 is my way of thinking in public."
+              ? "It started as a feeling. Not a plan, not a calculation. A quiet but persistent sense that Somalia\'s future matters, and that people who understand technology, governance, and community have something real to offer. I am still figuring this out. Somalia 2040 is my way of thinking in public."
               : "Waxay bilaabatay dareen. Maaha qorshe, maahan xisaab.",
             color: '#4FC3F7',
           },
@@ -987,7 +987,7 @@ const MarketingPage = ({ setPage, lang, voices, posts, T }) => {
             </div>
             <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '36px' : 'clamp(44px,5vw,68px)', color: '#F8FAFC', fontWeight: '700', lineHeight: '1.08', marginBottom: '24px', letterSpacing: '-1.5px' }}>
               {lang === 'en'
-                ? <>The platform for<br /><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>Somalia's</span> future<br />leaders.</>
+                ? <>The platform for<br /><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>Somalia\'s</span> future<br />leaders.</>
                 : <>Madasha<br /><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>Soomaaliya's</span><br />hogaaminteeda mustaqbalka.</>}
             </h1>
             <p style={{ color: '#64748B', fontSize: isMobile ? '15px' : '18px', lineHeight: '1.8', maxWidth: '520px', marginBottom: '40px' }}>
@@ -1093,7 +1093,7 @@ const MarketingPage = ({ setPage, lang, voices, posts, T }) => {
             <div style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '60px' : '80px', color: '#4FC3F7', opacity: 0.15, lineHeight: '0.5', marginBottom: '20px' }}>"</div>
             <p style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '20px' : '26px', color: '#F8FAFC', lineHeight: '1.6', marginBottom: '24px', maxWidth: '640px', fontStyle: 'italic', letterSpacing: '-0.2px' }}>
               {lang === 'en'
-                ? "It started as a feeling. Not a plan, not a calculation. A quiet but persistent sense that Somalia's future matters, and that people like me have something real to offer."
+                ? "It started as a feeling. Not a plan, not a calculation. A quiet but persistent sense that Somalia\'s future matters, and that people like me have something real to offer."
                 : "Waxay bilaabatay dareen. Maaha qorshe, maahan xisaab. Dareen degdeg ah oo adag oo ah in mustaqbalka Soomaaliya muhiim yahay."}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -2809,7 +2809,7 @@ const VisionPage = ({ lang, timeline, T }) => {
       </div>
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: isMobile ? '44px 20px' : '68px 24px' }}>
         {[
-          { title: lang === 'en' ? 'On Technology & Governance' : 'Teknolojiyada & Xukuumadda', body: lang === 'en' ? "Somalia's path forward runs through digital infrastructure. A government that invests in cybersecurity, digital identity, and transparent e-governance will be a government its people can actually trust. I believe this is not optional. It is the foundation." : "Jidka Soomaaliya wuxuu maraa kaabayaasha dijital. Xukuumad ku maalgalisa ammaanka dijital waxay noqon doontaa mid dadkeeda aaminsan." },
+          { title: lang === 'en' ? 'On Technology & Governance' : 'Teknolojiyada & Xukuumadda', body: lang === 'en' ? "Somalia\'s path forward runs through digital infrastructure. A government that invests in cybersecurity, digital identity, and transparent e-governance will be a government its people can actually trust. I believe this is not optional. It is the foundation." : "Jidka Soomaaliya wuxuu maraa kaabayaasha dijital. Xukuumad ku maalgalisa ammaanka dijital waxay noqon doontaa mid dadkeeda aaminsan." },
           { title: lang === 'en' ? 'On the Diaspora' : 'Diaspora-da', body: lang === 'en' ? "The millions of Somalis living abroad are not a footnote. They are an untapped engine. My vision includes building real, structural channels through which diaspora talent, capital, and experience flow back into Somalia in organized, impactful ways." : "Malaayin Soomaali ah oo dibadda ku nool kuma aha qoraal kooban. Waa matoor aan la isticmaalin." },
           { title: lang === 'en' ? 'On Unity' : 'Midnimada', body: lang === 'en' ? "Unity does not come from forcing agreement. It comes from building institutions people trust, systems that are fair, and leadership that listens. That is the kind of unity I want to work toward." : "Midnimadu kuma timaado in dadka lagu kalliftey inay is waafaqaan." },
         ].map((item, i) => (
@@ -2850,3 +2850,5 @@ const VisionPage = ({ lang, timeline, T }) => {
     </div>
   );
 };
+
+
