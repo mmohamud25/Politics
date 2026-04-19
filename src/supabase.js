@@ -154,3 +154,100 @@ export const listMedia = async () => {
     created_at: f.created_at,
   }))
 }
+
+/* ─── ANALYTICS ─────────────────────────────────────────────── */
+const getSessionId = () => {
+  let sid = sessionStorage.getItem('s2040_sid');
+  if (!sid) { sid = Math.random().toString(36).substr(2, 12); sessionStorage.setItem('s2040_sid', sid); }
+  return sid;
+};
+
+const getDevice = () => {
+  const ua = navigator.userAgent;
+  if (/tablet|ipad/i.test(ua)) return 'tablet';
+  if (/mobile|iphone|android/i.test(ua)) return 'mobile';
+  return 'desktop';
+};
+
+export const trackEvent = async (eventType, data = {}) => {
+  try {
+    await supabase.from('somalia_analytics').insert({
+      event_type: eventType,
+      page: data.page || window.location.pathname,
+      post_id: data.post_id || null,
+      session_id: getSessionId(),
+      device: getDevice(),
+      referrer: document.referrer || null,
+      country: data.country || null,
+      duration_seconds: data.duration || null,
+    });
+  } catch (e) { console.error('Analytics error:', e); }
+};
+
+export const getAnalytics = async (days = 30) => {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from('somalia_analytics')
+    .select('*')
+    .gte('created_at', since)
+    .order('created_at', { ascending: false });
+  if (error) console.error(error);
+  return data || [];
+};
+
+export const getAnalyticsSummary = async (days = 30) => {
+  const data = await getAnalytics(days);
+  const pageViews = data.filter(e => e.event_type === 'page_view');
+  const sessions = [...new Set(data.map(e => e.session_id))];
+  const devices = { mobile: 0, desktop: 0, tablet: 0 };
+  const pages = {};
+  const daily = {};
+  const referrers = {};
+
+  data.forEach(e => {
+    if (e.device) devices[e.device] = (devices[e.device] || 0) + 1;
+    if (e.page) pages[e.page] = (pages[e.page] || 0) + 1;
+    if (e.referrer) referrers[e.referrer] = (referrers[e.referrer] || 0) + 1;
+    const day = e.created_at?.split('T')[0];
+    if (day) daily[day] = (daily[day] || 0) + 1;
+  });
+
+  return {
+    totalViews: pageViews.length,
+    uniqueSessions: sessions.length,
+    devices,
+    topPages: Object.entries(pages).sort((a,b)=>b[1]-a[1]).slice(0,10),
+    topReferrers: Object.entries(referrers).sort((a,b)=>b[1]-a[1]).slice(0,5),
+    dailyViews: Object.entries(daily).sort((a,b)=>a[0].localeCompare(b[0])).slice(-30),
+  };
+};
+
+/* ─── ANNOUNCEMENTS ──────────────────────────────────────────── */
+export const getAnnouncement = async () => {
+  const { data } = await supabase.from('somalia_announcements').select('*').eq('active', true).single();
+  return data || null;
+};
+
+export const saveAnnouncement = async (msg, color) => {
+  await supabase.from('somalia_announcements').update({ active: false }).neq('id', -1);
+  if (msg) {
+    const { data } = await supabase.from('somalia_announcements').insert({ message: msg, color: color || '#4FC3F7', active: true }).select();
+    return data?.[0];
+  }
+};
+
+export const clearAnnouncement = async () => {
+  await supabase.from('somalia_announcements').update({ active: false }).neq('id', -1);
+};
+
+/* ─── SCHEDULED POSTS ────────────────────────────────────────── */
+export const publishScheduledPosts = async () => {
+  const now = new Date().toISOString();
+  const { data } = await supabase.from('somalia_posts').select('id').eq('published', false).lte('scheduled_at', now).not('scheduled_at', 'is', null);
+  if (data && data.length > 0) {
+    for (const p of data) {
+      await supabase.from('somalia_posts').update({ published: true }).eq('id', p.id);
+    }
+  }
+  return data?.length || 0;
+};
