@@ -61,7 +61,7 @@ const getT = (dark) => ({
   lightBlue: dark ? '#0C2D48' : '#EFF9FF', dark,
 });
 
-const C = getT(false); C.white = '#FFFFFF';
+const C = { ...getT(false), white: '#FFFFFF' };
 
 /* ─── UTILITIES ──────────────────────────────── */
 const useIsMobile = () => {
@@ -171,7 +171,7 @@ const SearchBar = ({ value, onChange, T }) => {
     <div style={{ position: 'relative', marginBottom: '32px' }}>
       <svg style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.35 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={t.charcoal} strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input value={value} onChange={e => onChange(e.target.value)} placeholder="Search posts..." style={{ width: '100%', padding: '11px 36px 11px 40px', border: `1.5px solid ${t.border}`, borderRadius: '8px', fontSize: '14px', background: t.inputBg, color: t.charcoal, outline: 'none' }} onFocus={e => e.target.style.borderColor = '#4FC3F7'} onBlur={e => e.target.style.borderColor = t.border} />
-      {value && <button onClick={() => onChange('')} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: t.mid, fontSize: '18px' }}>x</button>}
+      {value && <button onClick={() => onChange('')} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: t.mid, fontSize: '18px', lineHeight: 1 }}>×</button>}
     </div>
   );
 };
@@ -256,7 +256,7 @@ const Nav = ({ page, setPage, lang, setLang, dark, setDark, T, siteTitle, user, 
                 </span>
               ))}
               <button onClick={() => setLang(lang === 'en' ? 'so' : 'en')} style={{ background: 'rgba(79,195,247,0.1)', border: '1px solid rgba(79,195,247,0.2)', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', color: '#4FC3F7', fontWeight: '700', letterSpacing: '1px' }}>{lang === 'en' ? 'SO' : 'EN'}</button>
-              <button onClick={() => setDark(!dark)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>{dark ? '☀️' : '🌙'}</button>
+              <button onClick={() => setDark(!dark)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>{dark ? '☀' : '☾'}</button>
               {user ? (
                 <UserMenu user={user} profile={userProfile} onSignOut={onSignOut} onViewProfile={() => go('profile')} T={T} />
               ) : (
@@ -266,7 +266,7 @@ const Nav = ({ page, setPage, lang, setLang, dark, setDark, T, siteTitle, user, 
           )}
           {isMobile && (
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <button onClick={() => setDark(!dark)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>{dark ? '☀️' : '🌙'}</button>
+              <button onClick={() => setDark(!dark)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>{dark ? '☀' : '☾'}</button>
               <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '5px', width: '24px', padding: '4px' }}>
                 {[0,1,2].map(i => <div key={i} style={{ height: '2px', background: onHero ? '#F8FAFC' : t.charcoal, borderRadius: '1px', width: i===1&&menuOpen?'12px':'22px', transition: 'all 0.2s' }} />)}
               </button>
@@ -482,7 +482,7 @@ const PostPage = ({ post, lang, setPage, onCommentSubmit, user, savedPostIds, on
   const [submitted, setSubmitted] = useState(false);
   const isSaved = savedPostIds && savedPostIds.includes(post.id);
   const comments = (post.somalia_comments || []).filter(c => c.approved);
-  const content_body = lang === 'en' ? post.content : (post.content_so || post.content);
+  const postBody = lang === 'en' ? post.content : (post.content_so || post.content);
   const iStyle = { width: '100%', padding: '10px 13px', border: `1px solid ${t.border}`, borderRadius: '8px', fontSize: '14px', background: t.inputBg, color: t.charcoal, outline: 'none', marginBottom: '10px', fontFamily: "'DM Sans', sans-serif" };
 
   const handleSubmit = async () => {
@@ -516,7 +516,7 @@ const PostPage = ({ post, lang, setPage, onCommentSubmit, user, savedPostIds, on
         <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '20px' }}>
           <span style={{ color: t.mid, fontSize: '13px' }}>{post.date}</span>
           <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: t.border }} />
-          <span style={{ color: t.mid, fontSize: '13px' }}>{getRT(content_body)}</span>
+          <span style={{ color: t.mid, fontSize: '13px' }}>{getRT(postBody)}</span>
           {(post.views || 0) > 0 && <><div style={{ width: '3px', height: '3px', borderRadius: '50%', background: t.border }} /><span style={{ color: t.mid, fontSize: '13px' }}>{fmt(post.views)} reads</span></>}
           {post.category && <Tag T={t}>{post.category}</Tag>}
         </div>
@@ -525,9 +525,9 @@ const PostPage = ({ post, lang, setPage, onCommentSubmit, user, savedPostIds, on
         <div style={{ height: '1px', background: t.border, margin: '28px 0' }} />
 
         {content_body && (
-          isHTML(content_body)
-            ? <div className="post-content" dangerouslySetInnerHTML={{ __html: content_body }} />
-            : content_body.split('\n\n').map((para, i) => <p key={i} style={{ color: t.body, fontSize: isMobile ? '17px' : '18px', lineHeight: '1.95', marginBottom: '1.5rem' }}>{para}</p>)
+          isHTML(postBody)
+            ? <div className="post-content" dangerouslySetInnerHTML={{ __html: postBody }} />
+            : postBody.split('\n\n').map((para, i) => <p key={i} style={{ color: t.body, fontSize: isMobile ? '17px' : '18px', lineHeight: '1.95', marginBottom: '1.5rem' }}>{para}</p>)
         )}
 
         {post.tags && post.tags.length > 0 && (
@@ -755,10 +755,17 @@ const AuthModal = ({ onClose, onSuccess, T }) => {
 const UserMenu = ({ user, profile, onSignOut, onViewProfile, T }) => {
   const t = T;
   const [open, setOpen] = useState(false);
+  const ref = useRef(null);
   const initials = (profile?.display_name || user?.email || 'U').charAt(0).toUpperCase();
+  useEffect(() => {
+    if (!open) return;
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [open]);
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div ref={ref} style={{ position: 'relative' }}>
       <div onClick={() => setOpen(!open)} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg,#4FC3F7,#0284C7)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#FFF', fontSize: '13px', fontWeight: '700', flexShrink: 0 }}>
         {initials}
       </div>
@@ -881,7 +888,8 @@ const ProfilePage = ({ user, profile, savedPosts, posts, onUpdateProfile, onUnsa
   );
 };
 
-const AdminLogin = ({ onLogin }) => {
+const AdminLogin = ({ onLogin, T }) => {
+  const t = T || getT(false);
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [err, setErr] = useState(false);
@@ -889,20 +897,20 @@ const AdminLogin = ({ onLogin }) => {
     if (email === ADMIN_EMAIL && pw === ADMIN_PASSWORD) { onLogin(); setErr(false); }
     else setErr(true);
   };
-  const iStyle = (e) => ({ width: "100%", padding: "13px 14px", border: `1.5px solid ${e ? "#EF4444" : C.border}`, borderRadius: "10px", fontFamily: "DM Sans", fontSize: "14px", marginBottom: "12px", outline: "none", color: C.charcoal, background: C.soft });
+  const iStyle = (e) => ({ width: "100%", padding: "13px 14px", border: `1.5px solid ${e ? "#EF4444" : t.border}`, borderRadius: "10px", fontFamily: "DM Sans", fontSize: "14px", marginBottom: "12px", outline: "none", color: t.charcoal, background: t.soft });
   return (
-    <div style={{ minHeight: "100vh", background: C.charcoal, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
-      <div style={{ background: C.white, borderRadius: "20px", padding: "48px", width: "100%", maxWidth: "420px" }}>
+    <div style={{ minHeight: "100vh", background: t.charcoal, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+      <div style={{ background: '#FFFFFF', borderRadius: "20px", padding: "48px", width: "100%", maxWidth: "420px" }}>
         <div style={{ textAlign: "center", marginBottom: "36px" }}>
-          <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: C.blue, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-            <span style={{ color: C.white, fontSize: "24px", fontFamily: "Playfair Display", fontWeight: "700" }}>S</span>
+          <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: '#4FC3F7', display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+            <span style={{ color: '#FFFFFF', fontSize: "24px", fontFamily: "Playfair Display", fontWeight: "700" }}>S</span>
           </div>
-          <h2 style={{ fontFamily: "Playfair Display", fontSize: "26px", color: C.charcoal, marginBottom: "6px" }}>Admin Access</h2>
-          <p style={{ color: C.mid, fontSize: "13px" }}>Somalia 2040 - Dashboard</p>
+          <h2 style={{ fontFamily: "Playfair Display", fontSize: "26px", color: t.charcoal, marginBottom: "6px" }}>Admin Access</h2>
+          <p style={{ color: t.mid, fontSize: "13px" }}>Somalia 2040 - Dashboard</p>
         </div>
-        <label style={{ color: C.mid, fontSize: "12px", display: "block", marginBottom: "6px" }}>Email</label>
+        <label style={{ color: t.mid, fontSize: "12px", display: "block", marginBottom: "6px" }}>Email</label>
         <input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && attempt()} placeholder="your@email.com" style={iStyle(err)} />
-        <label style={{ color: C.mid, fontSize: "12px", display: "block", marginBottom: "6px" }}>Password</label>
+        <label style={{ color: t.mid, fontSize: "12px", display: "block", marginBottom: "6px" }}>Password</label>
         <input type="password" value={pw} onChange={e => setPw(e.target.value)} onKeyDown={e => e.key === "Enter" && attempt()} placeholder="••••••••••" style={{ ...iStyle(err), letterSpacing: "4px" }} />
         {err && <p style={{ color: "#EF4444", fontSize: "13px", marginBottom: "12px" }}>Incorrect email or password.</p>}
         <div style={{ height: "8px" }} />
@@ -969,31 +977,31 @@ const AdminShell = ({ children, tab, setTab, onLogout, T }) => {
 
 const AdminDash = ({ posts, voices }) => {
   const stats = [
-    { label: "Published Posts", value: posts.filter(p => p.published).length, color: C.blue },
-    { label: "Drafts", value: posts.filter(p => !p.published).length, color: C.gold },
+    { label: "Published Posts", value: posts.filter(p => p.published).length, color: '#4FC3F7' },
+    { label: "Drafts", value: posts.filter(p => !p.published).length, color: '#D97706' },
     { label: "Pending Comments", value: posts.flatMap(p => p.somalia_comments || []).filter(c => !c.approved).length, color: "#EF4444" },
     { label: "Community Voices", value: voices.length, color: "#10B981" },
   ];
   return (
     <div className="fade-in">
-      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: C.charcoal, marginBottom: "32px" }}>Dashboard</h1>
+      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal, marginBottom: "32px" }}>Dashboard</h1>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "40px" }}>
         {stats.map(s => (
-          <div key={s.label} style={{ background: C.white, borderRadius: "12px", padding: "24px", borderTop: `3px solid ${s.color}` }}>
+          <div key={s.label} style={{ background: '#FFFFFF', borderRadius: "12px", padding: "24px", borderTop: `3px solid ${s.color}` }}>
             <div style={{ fontSize: "32px", fontWeight: "700", color: s.color, fontFamily: "Playfair Display" }}>{s.value}</div>
-            <div style={{ color: C.mid, fontSize: "13px", marginTop: "4px" }}>{s.label}</div>
+            <div style={{ color: t.mid, fontSize: "13px", marginTop: "4px" }}>{s.label}</div>
           </div>
         ))}
       </div>
-      <div style={{ background: C.white, borderRadius: "12px", padding: "28px" }}>
-        <h3 style={{ fontFamily: "Playfair Display", fontSize: "18px", color: C.charcoal, marginBottom: "20px" }}>Recent Posts</h3>
+      <div style={{ background: '#FFFFFF', borderRadius: "12px", padding: "28px" }}>
+        <h3 style={{ fontFamily: "Playfair Display", fontSize: "18px", color: t.charcoal, marginBottom: "20px" }}>Recent Posts</h3>
         {posts.slice(0, 5).map(p => (
-          <div key={p.id} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: `1px solid ${C.border}`, alignItems: "center" }}>
+          <div key={p.id} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: `1px solid ${t.border}`, alignItems: "center" }}>
             <div>
-              <span style={{ color: C.charcoal, fontSize: "14px", fontWeight: "500" }}>{p.title}</span>
-              <span style={{ color: C.mid, fontSize: "12px", display: "block" }}>{p.date}</span>
+              <span style={{ color: t.charcoal, fontSize: "14px", fontWeight: "500" }}>{p.title}</span>
+              <span style={{ color: t.mid, fontSize: "12px", display: "block" }}>{p.date}</span>
             </div>
-            <span style={{ background: p.published ? C.lightBlue : "#FEF3C7", color: p.published ? C.blueDark : "#92400E", fontSize: "10px", padding: "3px 10px", borderRadius: "20px", fontWeight: "600" }}>
+            <span style={{ background: p.published ? t.lightBlue : "#FEF3C7", color: p.published ? t.blueDark : "#92400E", fontSize: "10px", padding: "3px 10px", borderRadius: "20px", fontWeight: "600" }}>
               {p.published ? "Published" : "Draft"}
             </span>
           </div>
@@ -1021,33 +1029,33 @@ const AdminPosts = ({ posts, onSave, onDelete, onToggle }) => {
     setEditing(null);
   };
 
-  const inputStyle = { width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", marginBottom: "12px", outline: "none" };
+  const inputStyle = { width: "100%", padding: "10px 12px", border: `1px solid ${t.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", marginBottom: "12px", outline: "none" };
 
   if (editing !== null) return (
     <div className="fade-in">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
-        <h1 style={{ fontFamily: "Playfair Display", fontSize: "24px", color: C.charcoal }}>{editing === "new" ? "New Post" : "Edit Post"}</h1>
+        <h1 style={{ fontFamily: "Playfair Display", fontSize: "24px", color: t.charcoal }}>{editing === "new" ? "New Post" : "Edit Post"}</h1>
         <div style={{ display: "flex", gap: "10px" }}>
           <Btn outline small onClick={() => setEditing(null)}>Cancel</Btn>
           <Btn small onClick={save}>{saving ? "Saving..." : "Save Post"}</Btn>
         </div>
       </div>
-      <div style={{ background: C.white, borderRadius: "12px", padding: "28px" }}>
+      <div style={{ background: '#FFFFFF', borderRadius: "12px", padding: "28px" }}>
         {[["title", "Title (English)"], ["title_so", "Title (Somali)"], ["excerpt", "Excerpt (English)"], ["excerpt_so", "Excerpt (Somali)"]].map(([field, label]) => (
           <div key={field}>
-            <label style={{ color: C.mid, fontSize: "12px", display: "block", marginBottom: "4px" }}>{label}</label>
+            <label style={{ color: t.mid, fontSize: "12px", display: "block", marginBottom: "4px" }}>{label}</label>
             <input style={inputStyle} value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })} placeholder={label} />
           </div>
         ))}
         {[["content", "Content (English)"], ["content_so", "Content (Somali)"]].map(([field, label]) => (
           <div key={field}>
-            <label style={{ color: C.mid, fontSize: "12px", display: "block", marginBottom: "4px" }}>{label}</label>
+            <label style={{ color: t.mid, fontSize: "12px", display: "block", marginBottom: "4px" }}>{label}</label>
             <textarea style={{ ...inputStyle, resize: "vertical" }} rows={8} value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })} placeholder={label} />
           </div>
         ))}
         <div style={{ display: "flex", gap: "24px", marginTop: "8px" }}>
           {[["published", "Published"], ["featured", "Featured on Homepage"]].map(([field, label]) => (
-            <label key={field} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: C.charcoal }}>
+            <label key={field} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: t.charcoal }}>
               <input type="checkbox" checked={form[field]} onChange={e => setForm({ ...form, [field]: e.target.checked })} />
               {label}
             </label>
@@ -1060,21 +1068,21 @@ const AdminPosts = ({ posts, onSave, onDelete, onToggle }) => {
   return (
     <div className="fade-in">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
-        <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: C.charcoal }}>Blog Posts</h1>
+        <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal }}>Blog Posts</h1>
         <Btn small onClick={openNew}>+ New Post</Btn>
       </div>
-      <div style={{ background: C.white, borderRadius: "12px", overflow: "hidden" }}>
+      <div style={{ background: '#FFFFFF', borderRadius: "12px", overflow: "hidden" }}>
         {posts.map((p, i) => (
-          <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 24px", borderBottom: i < posts.length - 1 ? `1px solid ${C.border}` : "none" }}>
+          <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 24px", borderBottom: i < posts.length - 1 ? `1px solid ${t.border}` : "none" }}>
             <div style={{ flex: 1 }}>
-              <span style={{ color: C.charcoal, fontSize: "14px", fontWeight: "500" }}>{p.title}</span>
+              <span style={{ color: t.charcoal, fontSize: "14px", fontWeight: "500" }}>{p.title}</span>
               <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
-                <span style={{ color: C.mid, fontSize: "11px" }}>{p.date}</span>
-                {p.featured && <span style={{ color: C.gold, fontSize: "11px" }}>★ Featured</span>}
+                <span style={{ color: t.mid, fontSize: "11px" }}>{p.date}</span>
+                {p.featured && <span style={{ color: '#D97706', fontSize: "11px" }}>★ Featured</span>}
               </div>
             </div>
             <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <span onClick={() => onToggle(p.id, "published", !p.published)} style={{ background: p.published ? C.lightBlue : "#FEF3C7", color: p.published ? C.blueDark : "#92400E", fontSize: "10px", padding: "3px 10px", borderRadius: "20px", fontWeight: "600", cursor: "pointer" }}>
+              <span onClick={() => onToggle(p.id, "published", !p.published)} style={{ background: p.published ? t.lightBlue : "#FEF3C7", color: p.published ? t.blueDark : "#92400E", fontSize: "10px", padding: "3px 10px", borderRadius: "20px", fontWeight: "600", cursor: "pointer" }}>
                 {p.published ? "Published" : "Draft"}
               </span>
               <Btn small outline onClick={() => openEdit(p)}>Edit</Btn>
@@ -1088,25 +1096,26 @@ const AdminPosts = ({ posts, onSave, onDelete, onToggle }) => {
 };
 
 /* ─── ADMIN COMMENTS ──────────────────────────────────────────── */
-const AdminComments = ({ posts, onApprove, onDelete }) => {
+const AdminComments = ({ posts, onApprove, onDelete , T }) => {  const t = T || getT(false);
+
   const allComments = posts.flatMap(p => (p.somalia_comments || []).map(c => ({ ...c, postTitle: p.title })));
   return (
     <div className="fade-in">
-      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: C.charcoal, marginBottom: "28px" }}>Comment Moderation</h1>
-      {allComments.length === 0 && <p style={{ color: C.mid }}>No comments yet.</p>}
+      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal, marginBottom: "28px" }}>Comment Moderation</h1>
+      {allComments.length === 0 && <p style={{ color: t.mid }}>No comments yet.</p>}
       {allComments.map(c => (
-        <div key={c.id} style={{ background: C.white, borderRadius: "12px", padding: "20px 24px", marginBottom: "12px", borderLeft: `3px solid ${c.approved ? "#10B981" : "#F59E0B"}` }}>
+        <div key={c.id} style={{ background: '#FFFFFF', borderRadius: "12px", padding: "20px 24px", marginBottom: "12px", borderLeft: `3px solid ${c.approved ? "#10B981" : "#F59E0B"}` }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
             <div>
-              <span style={{ fontWeight: "600", color: C.charcoal, fontSize: "14px" }}>{c.author}</span>
-              <span style={{ color: C.mid, fontSize: "12px", marginLeft: "12px" }}>on: {c.postTitle}</span>
+              <span style={{ fontWeight: "600", color: t.charcoal, fontSize: "14px" }}>{c.author}</span>
+              <span style={{ color: t.mid, fontSize: "12px", marginLeft: "12px" }}>on: {c.postTitle}</span>
             </div>
             <div style={{ display: "flex", gap: "8px" }}>
               {!c.approved && <Btn small onClick={() => onApprove(c.id)} style={{ background: "#D1FAE5", color: "#065F46", border: "none" }}>Approve</Btn>}
               <Btn small onClick={() => onDelete(c.id)} style={{ background: "#FEF2F2", color: "#EF4444", border: "none" }}>Delete</Btn>
             </div>
           </div>
-          <p style={{ color: C.charcoal, fontSize: "14px", lineHeight: "1.6" }}>{c.text}</p>
+          <p style={{ color: t.charcoal, fontSize: "14px", lineHeight: "1.6" }}>{c.text}</p>
           <span style={{ background: c.approved ? "#D1FAE5" : "#FEF3C7", color: c.approved ? "#065F46" : "#92400E", fontSize: "10px", padding: "2px 8px", borderRadius: "20px", fontWeight: "600", marginTop: "8px", display: "inline-block" }}>
             {c.approved ? "Approved" : "Pending"}
           </span>
@@ -1117,30 +1126,31 @@ const AdminComments = ({ posts, onApprove, onDelete }) => {
 };
 
 /* ─── ADMIN COMMUNITY ─────────────────────────────────────────── */
-const AdminCommunity = ({ voices, onToggleFeatured, onDelete, monthlyQ, onUpdateQ }) => {
+const AdminCommunity = ({ voices, onToggleFeatured, onDelete, monthlyQ, onUpdateQ , T }) => {  const t = T || getT(false);
+
   const [q, setQ] = useState(monthlyQ || "");
   return (
     <div className="fade-in">
-      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: C.charcoal, marginBottom: "28px" }}>Community Manager</h1>
-      <div style={{ background: C.white, borderRadius: "12px", padding: "24px", marginBottom: "24px" }}>
-        <h3 style={{ fontFamily: "Playfair Display", fontSize: "18px", color: C.charcoal, marginBottom: "16px" }}>Monthly Question</h3>
-        <textarea value={q} onChange={e => setQ(e.target.value)} rows={3} style={{ width: "100%", padding: "12px", border: `1px solid ${C.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", resize: "vertical", outline: "none", marginBottom: "12px" }} />
+      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal, marginBottom: "28px" }}>Community Manager</h1>
+      <div style={{ background: '#FFFFFF', borderRadius: "12px", padding: "24px", marginBottom: "24px" }}>
+        <h3 style={{ fontFamily: "Playfair Display", fontSize: "18px", color: t.charcoal, marginBottom: "16px" }}>Monthly Question</h3>
+        <textarea value={q} onChange={e => setQ(e.target.value)} rows={3} style={{ width: "100%", padding: "12px", border: `1px solid ${t.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", resize: "vertical", outline: "none", marginBottom: "12px" }} />
         <Btn small onClick={() => onUpdateQ(q)}>Update Question</Btn>
       </div>
-      <div style={{ background: C.white, borderRadius: "12px", overflow: "hidden" }}>
-        <div style={{ padding: "16px 24px", borderBottom: `1px solid ${C.border}` }}>
-          <h3 style={{ fontFamily: "Playfair Display", fontSize: "18px", color: C.charcoal }}>Community Voices ({voices.length})</h3>
+      <div style={{ background: '#FFFFFF', borderRadius: "12px", overflow: "hidden" }}>
+        <div style={{ padding: "16px 24px", borderBottom: `1px solid ${t.border}` }}>
+          <h3 style={{ fontFamily: "Playfair Display", fontSize: "18px", color: t.charcoal }}>Community Voices ({voices.length})</h3>
         </div>
         {voices.map((v, i) => (
-          <div key={v.id} style={{ padding: "16px 24px", borderBottom: i < voices.length - 1 ? `1px solid ${C.border}` : "none" }}>
+          <div key={v.id} style={{ padding: "16px 24px", borderBottom: i < voices.length - 1 ? `1px solid ${t.border}` : "none" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div style={{ flex: 1 }}>
-                <span style={{ fontWeight: "600", color: C.charcoal, fontSize: "14px" }}>{v.author}</span>
-                {v.location && <span style={{ color: C.mid, fontSize: "12px" }}> - {v.location}</span>}
-                <p style={{ color: C.mid, fontSize: "13px", margin: "6px 0 0", lineHeight: "1.5" }}>{v.text}</p>
+                <span style={{ fontWeight: "600", color: t.charcoal, fontSize: "14px" }}>{v.author}</span>
+                {v.location && <span style={{ color: t.mid, fontSize: "12px" }}> - {v.location}</span>}
+                <p style={{ color: t.mid, fontSize: "13px", margin: "6px 0 0", lineHeight: "1.5" }}>{v.text}</p>
               </div>
               <div style={{ display: "flex", gap: "8px", marginLeft: "16px" }}>
-                <Btn small onClick={() => onToggleFeatured(v.id, !v.featured)} style={{ background: v.featured ? "#FEF3C7" : C.lightBlue, color: v.featured ? "#92400E" : C.blueDark, border: "none" }}>
+                <Btn small onClick={() => onToggleFeatured(v.id, !v.featured)} style={{ background: v.featured ? "#FEF3C7" : t.lightBlue, color: v.featured ? "#92400E" : t.blueDark, border: "none" }}>
                   {v.featured ? "Unfeature" : "Feature"}
                 </Btn>
                 <Btn small onClick={() => onDelete(v.id)} style={{ background: "#FEF2F2", color: "#EF4444", border: "none" }}>Delete</Btn>
@@ -1154,26 +1164,27 @@ const AdminCommunity = ({ voices, onToggleFeatured, onDelete, monthlyQ, onUpdate
 };
 
 /* ─── ADMIN WORD ──────────────────────────────────────────────── */
-const AdminWord = ({ word, onUpdate }) => {
+const AdminWord = ({ word, onUpdate , T }) => {  const t = T || getT(false);
+
   const [form, setForm] = useState(word || { somali: "", english: "", sentence: "" });
   return (
     <div className="fade-in">
-      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: C.charcoal, marginBottom: "28px" }}>Word of the Week</h1>
-      <div style={{ background: C.white, borderRadius: "12px", padding: "28px", maxWidth: "500px" }}>
+      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal, marginBottom: "28px" }}>Word of the Week</h1>
+      <div style={{ background: '#FFFFFF', borderRadius: "12px", padding: "28px", maxWidth: "500px" }}>
         {[["somali", "Somali Word"], ["english", "English Translation"], ["sentence", "Example Sentence (Somali)"]].map(([field, label]) => (
           <div key={field} style={{ marginBottom: "16px" }}>
-            <label style={{ color: C.mid, fontSize: "12px", display: "block", marginBottom: "6px" }}>{label}</label>
+            <label style={{ color: t.mid, fontSize: "12px", display: "block", marginBottom: "6px" }}>{label}</label>
             <input value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })}
-              style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", outline: "none" }} />
+              style={{ width: "100%", padding: "10px 12px", border: `1px solid ${t.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", outline: "none" }} />
           </div>
         ))}
         <Btn onClick={() => onUpdate(form)}>Update Word</Btn>
       </div>
       {word && (
-        <div style={{ marginTop: "24px", background: C.charcoal, borderRadius: "12px", padding: "24px", maxWidth: "500px" }}>
-          <div style={{ color: C.blue, fontSize: "10px", letterSpacing: "3px", marginBottom: "12px" }}>PREVIEW</div>
-          <div style={{ fontFamily: "Playfair Display", fontSize: "28px", color: C.white }}>{word.somali}</div>
-          <div style={{ color: C.gold, fontSize: "14px", margin: "4px 0 10px" }}>{word.english}</div>
+        <div style={{ marginTop: "24px", background: t.charcoal, borderRadius: "12px", padding: "24px", maxWidth: "500px" }}>
+          <div style={{ color: '#4FC3F7', fontSize: "10px", letterSpacing: "3px", marginBottom: "12px" }}>PREVIEW</div>
+          <div style={{ fontFamily: "Playfair Display", fontSize: "28px", color: '#FFFFFF' }}>{word.somali}</div>
+          <div style={{ color: '#D97706', fontSize: "14px", margin: "4px 0 10px" }}>{word.english}</div>
           <p style={{ color: "#9CA3AF", fontSize: "13px", fontStyle: "italic" }}>{word.sentence}</p>
         </div>
       )}
@@ -1182,7 +1193,8 @@ const AdminWord = ({ word, onUpdate }) => {
 };
 
 /* ─── ADMIN READING ───────────────────────────────────────────── */
-const AdminReading = ({ reading, onAdd, onDelete }) => {
+const AdminReading = ({ reading, onAdd, onDelete , T }) => {  const t = T || getT(false);
+
   const [form, setForm] = useState({ title: "", author: "", category: "", note: "" });
   const add = async () => {
     if (!form.title || !form.author) return;
@@ -1191,25 +1203,25 @@ const AdminReading = ({ reading, onAdd, onDelete }) => {
   };
   return (
     <div className="fade-in">
-      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: C.charcoal, marginBottom: "28px" }}>Reading List</h1>
-      <div style={{ background: C.white, borderRadius: "12px", padding: "24px", marginBottom: "24px" }}>
-        <h3 style={{ fontFamily: "Playfair Display", fontSize: "18px", color: C.charcoal, marginBottom: "16px" }}>Add a Book</h3>
+      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal, marginBottom: "28px" }}>Reading List</h1>
+      <div style={{ background: '#FFFFFF', borderRadius: "12px", padding: "24px", marginBottom: "24px" }}>
+        <h3 style={{ fontFamily: "Playfair Display", fontSize: "18px", color: t.charcoal, marginBottom: "16px" }}>Add a Book</h3>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
           {[["title", "Title"], ["author", "Author"], ["category", "Category"]].map(([f, p]) => (
             <input key={f} value={form[f]} onChange={e => setForm({ ...form, [f]: e.target.value })} placeholder={p}
-              style={{ padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", outline: "none" }} />
+              style={{ padding: "10px 12px", border: `1px solid ${t.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", outline: "none" }} />
           ))}
         </div>
         <textarea value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="Why you recommend it..." rows={2}
-          style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", resize: "vertical", marginBottom: "12px", outline: "none" }} />
+          style={{ width: "100%", padding: "10px 12px", border: `1px solid ${t.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", resize: "vertical", marginBottom: "12px", outline: "none" }} />
         <Btn small onClick={add}>Add Book</Btn>
       </div>
       {reading.map(b => (
-        <div key={b.id} style={{ background: C.white, borderRadius: "10px", padding: "16px 20px", marginBottom: "10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div key={b.id} style={{ background: '#FFFFFF', borderRadius: "10px", padding: "16px 20px", marginBottom: "10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <span style={{ fontWeight: "600", color: C.charcoal, fontSize: "14px" }}>{b.title}</span>
-            <span style={{ color: C.blue, fontSize: "13px", marginLeft: "8px" }}>by {b.author}</span>
-            <span style={{ color: C.mid, fontSize: "11px", display: "block", marginTop: "2px" }}>{b.category}</span>
+            <span style={{ fontWeight: "600", color: t.charcoal, fontSize: "14px" }}>{b.title}</span>
+            <span style={{ color: '#4FC3F7', fontSize: "13px", marginLeft: "8px" }}>by {b.author}</span>
+            <span style={{ color: t.mid, fontSize: "11px", display: "block", marginTop: "2px" }}>{b.category}</span>
           </div>
           <Btn small onClick={() => onDelete(b.id)} style={{ background: "#FEF2F2", color: "#EF4444", border: "none" }}>Remove</Btn>
         </div>
@@ -1219,28 +1231,29 @@ const AdminReading = ({ reading, onAdd, onDelete }) => {
 };
 
 /* ─── ADMIN TIMELINE ──────────────────────────────────────────── */
-const AdminTimeline = ({ timeline, onUpdate }) => {
+const AdminTimeline = ({ timeline, onUpdate , T }) => {  const t = T || getT(false);
+
   const [local, setLocal] = useState(timeline || []);
   return (
     <div className="fade-in">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
-        <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: C.charcoal }}>Somalia 2040 Roadmap</h1>
+        <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal }}>Somalia 2040 Roadmap</h1>
         <Btn small onClick={() => onUpdate(local)}>Save Changes</Btn>
       </div>
       {local.map((phase, i) => (
-        <div key={i} style={{ background: C.white, borderRadius: "12px", padding: "24px", marginBottom: "16px" }}>
+        <div key={i} style={{ background: '#FFFFFF', borderRadius: "12px", padding: "24px", marginBottom: "16px" }}>
           <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "16px" }}>
-            <div style={{ background: C.lightBlue, color: C.blueDark, fontSize: "12px", fontWeight: "600", padding: "4px 12px", borderRadius: "20px" }}>{phase.year}</div>
-            <div style={{ fontFamily: "Playfair Display", fontSize: "18px", color: C.charcoal }}>{phase.phase}</div>
+            <div style={{ background: t.lightBlue, color: t.blueDark, fontSize: "12px", fontWeight: "600", padding: "4px 12px", borderRadius: "20px" }}>{phase.year}</div>
+            <div style={{ fontFamily: "Playfair Display", fontSize: "18px", color: t.charcoal }}>{phase.phase}</div>
           </div>
           {phase.items.map((item, j) => (
             <div key={j} style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "8px" }}>
-              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: C.gold, flexShrink: 0 }} />
+              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: '#D97706', flexShrink: 0 }} />
               <input value={item} onChange={e => {
                 const updated = [...local];
                 updated[i] = { ...updated[i], items: updated[i].items.map((it, idx) => idx === j ? e.target.value : it) };
                 setLocal(updated);
-              }} style={{ flex: 1, padding: "6px 10px", border: `1px solid ${C.border}`, borderRadius: "6px", fontFamily: "DM Sans", fontSize: "13px", outline: "none" }} />
+              }} style={{ flex: 1, padding: "6px 10px", border: `1px solid ${t.border}`, borderRadius: "6px", fontFamily: "DM Sans", fontSize: "13px", outline: "none" }} />
             </div>
           ))}
         </div>
@@ -1252,16 +1265,16 @@ const AdminTimeline = ({ timeline, onUpdate }) => {
 /* ─── ADMIN SETTINGS ──────────────────────────────────────────── */
 const AdminSettings = ({ setPage }) => (
   <div className="fade-in">
-    <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: C.charcoal, marginBottom: "28px" }}>Settings</h1>
-    <div style={{ background: C.white, borderRadius: "12px", padding: "28px", maxWidth: "500px" }}>
+    <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal, marginBottom: "28px" }}>Settings</h1>
+    <div style={{ background: '#FFFFFF', borderRadius: "12px", padding: "28px", maxWidth: "500px" }}>
       {[["Site URL", "politics.mmohamud.me"], ["Admin Email", ADMIN_EMAIL], ["Site Title", "Somalia 2040"]].map(([label, val]) => (
         <div key={label} style={{ marginBottom: "20px" }}>
-          <label style={{ color: C.mid, fontSize: "12px", display: "block", marginBottom: "6px" }}>{label}</label>
-          <input defaultValue={val} style={{ width: "100%", padding: "10px 12px", border: `1px solid ${C.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", outline: "none" }} />
+          <label style={{ color: t.mid, fontSize: "12px", display: "block", marginBottom: "6px" }}>{label}</label>
+          <input defaultValue={val} style={{ width: "100%", padding: "10px 12px", border: `1px solid ${t.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", outline: "none" }} />
         </div>
       ))}
       <Divider />
-      <div onClick={() => setPage("home")} style={{ color: C.blue, fontSize: "14px", cursor: "pointer", fontWeight: "500" }}>← View Public Site</div>
+      <div onClick={() => setPage("home")} style={{ color: '#4FC3F7', fontSize: "14px", cursor: "pointer", fontWeight: "500" }}>← View Public Site</div>
     </div>
   </div>
 );
@@ -1468,7 +1481,7 @@ export default function App() {
   useEffect(() => { document.title = `${siteTitle} 2040`; }, [siteTitle]);
 
   const nav = useCallback((p) => {
-    if (p !== 'admin') { localStorage.setItem('s2040_page', p); trackEvent('page_view', { page: p }); }
+    if (p !== 'admin') { if (p !== 'post') localStorage.setItem('s2040_page', p); trackEvent('page_view', { page: p }); }
     setTrans(true);
     setTimeout(() => { setPage(p); setTrans(false); window.scrollTo(0, 0); }, 150);
   }, []);
@@ -1500,6 +1513,17 @@ export default function App() {
         getUserSavedPosts(session.user.id).then(setSavedPostIds);
       }
     });
+    // Listen for auth changes (tab focus, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        getProfile(session.user.id).then(setUserProfile);
+        getUserSavedPosts(session.user.id).then(setSavedPostIds);
+      } else {
+        setUser(null); setUserProfile(null); setSavedPostIds([]);
+      }
+    });
+    return () => subscription.unsubscribe();
     // Restore auth session
     getSession().then(async (session) => {
       if (session?.user) {
@@ -1552,7 +1576,7 @@ export default function App() {
   const adminLogin  = () => { setAdminLoggedIn(true); localStorage.setItem('s2040_admin', 'true'); };
   const adminLogout = () => { setAdminLoggedIn(false); localStorage.removeItem('s2040_admin'); nav('home'); };
 
-  const hSavePost    = async (p) => { await savePost(p); await loadAll(); };
+  const hSaveBlogPost = async (p) => { await savePost(p); await loadAll(); };
   const hDeletePost  = async (id) => { await deletePost(id); setPosts(prev => prev.filter(p => p.id !== id)); };
   const hTogglePost  = async (id, f, v) => { await togglePostField(id, f, v); await loadAll(); };
   const hAddComment  = async (c) => { await addComment(c); await loadAll(); };
@@ -1582,7 +1606,7 @@ export default function App() {
         <GlobalStyles dark={dark} />
         <AdminShell tab={adminTab} setTab={setAdminTab} onLogout={adminLogout} T={T}>
           {adminTab === 'dash'      && <AdminDash posts={posts} voices={voices} T={T} onTabChange={setAdminTab} />}
-          {adminTab === 'posts'     && <AdminPosts posts={posts} onSave={hSavePost} onDelete={hDeletePost} onToggle={hTogglePost} T={T} />}
+          {adminTab === 'posts'     && <AdminPosts posts={posts} onSave={hSaveBlogPost} onDelete={hDeletePost} onToggle={hTogglePost} T={T} />}
           {adminTab === 'media'     && <AdminMedia T={T} />}
           {adminTab === 'analytics' && <AdminAnalytics T={T} />}
           {adminTab === 'comments'  && <AdminComments posts={posts} onApprove={hApproveComment} onDelete={hDeleteComment} T={T} />}
