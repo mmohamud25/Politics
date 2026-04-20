@@ -475,6 +475,263 @@ const BlogPage = ({ posts, lang, setPage, setCurrentPost, T }) => {
   );
 };
 
+const VisionPage = ({ lang, timeline, T }) => {
+  const t = T;
+  const isMobile = useIsMobile();
+  return (
+    <div style={{ paddingTop: '64px' }}>
+      <div style={{ background: 'linear-gradient(160deg,#040C16 0%,#0A0F1A 100%)', padding: isMobile ? '52px 20px 44px' : '88px 24px 72px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '50%', right: '-5%', width: '500px', height: '500px', background: 'radial-gradient(circle,rgba(79,195,247,0.05),transparent)', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: '680px', margin: '0 auto', textAlign: 'center', position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} />
+            <span style={{ color: '#4FC3F7', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700' }}>The Vision</span>
+            <div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} />
+          </div>
+          <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '32px' : 'clamp(32px,4vw,52px)', color: '#F8FAFC', marginBottom: '20px', lineHeight: '1.15', letterSpacing: '-0.5px' }}>
+            {lang === 'en' ? 'What I believe Somalia can become.' : 'Waxa aan aaminahay in Soomaaliya noqon karto.'}
+          </h1>
+          <p style={{ color: '#475569', fontSize: '16px', lineHeight: '1.8', maxWidth: '500px', margin: '0 auto' }}>
+            {lang === 'en' ? 'This is a living document. It will grow as my thinking matures. Nothing here is final.' : 'Waa dukumiinti nool. Wuu kordhayaa marka fikradaydu ay bislaato.'}
+          </p>
+        </div>
+      </div>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: isMobile ? '44px 20px' : '68px 24px' }}>
+        {[
+          { title: lang === 'en' ? 'On Technology & Governance' : 'Teknolojiyada & Xukuumadda', body: lang === 'en' ? "Somalia\'s path forward runs through digital infrastructure. A government that invests in cybersecurity, digital identity, and transparent e-governance will be a government its people can actually trust." : "Jidka Soomaaliya wuxuu maraa kaabayaasha dijital." },
+          { title: lang === 'en' ? 'On the Diaspora' : 'Diaspora-da', body: lang === 'en' ? "The millions of Somalis living abroad are not a footnote. They are an untapped engine. My vision includes building real channels through which diaspora talent, capital, and experience flow back into Somalia." : "Malaayin Soomaali ah oo dibadda ku nool kuma aha qoraal kooban." },
+          { title: lang === 'en' ? 'On Unity' : 'Midnimada', body: lang === 'en' ? "Unity does not come from forcing agreement. It comes from building institutions people trust, systems that are fair, and leadership that listens." : "Midnimadu kuma timaado in dadka lagu kalliftey inay is waafaqaan." },
+        ].map((item, i) => (
+          <AnimatedDiv key={i} delay={i * 0.1} style={{ marginBottom: '52px', paddingBottom: '52px', borderBottom: `1px solid ${t.border}` }}>
+            <div style={{ display: 'flex', gap: '24px' }}>
+              <div style={{ width: '2px', background: 'linear-gradient(to bottom,#4FC3F7,transparent)', borderRadius: '2px', flexShrink: 0, marginTop: '6px' }} />
+              <div>
+                <h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '22px' : '28px', color: t.charcoal, marginBottom: '16px' }}>{item.title}</h2>
+                <p style={{ color: t.body, fontSize: isMobile ? '15px' : '17px', lineHeight: '1.9' }}>{item.body}</p>
+              </div>
+            </div>
+          </AnimatedDiv>
+        ))}
+        <AnimatedDiv><h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '24px' : '32px', color: t.charcoal, marginBottom: '40px' }}>The Roadmap to 2040</h2></AnimatedDiv>
+        {timeline && timeline.map((phase, i) => (
+          <AnimatedDiv key={i} delay={i * 0.07}>
+            <div style={{ display: 'flex', gap: isMobile ? '16px' : '28px', marginBottom: '36px', alignItems: 'flex-start' }}>
+              <div style={{ flexShrink: 0, width: isMobile ? '80px' : '100px', textAlign: 'right' }}>
+                <div style={{ color: '#4FC3F7', fontSize: '12px', fontWeight: '700' }}>{phase.year}</div>
+                <div style={{ color: t.mid, fontSize: '11px', marginTop: '2px' }}>{phase.phase}</div>
+              </div>
+              <div style={{ width: '1px', background: t.border, flexShrink: 0, marginTop: '4px', alignSelf: 'stretch' }} />
+              <div>{(phase.items || []).map((item, j) => (
+                <div key={j} style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'flex-start' }}>
+                  <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#D97706', flexShrink: 0, marginTop: '7px' }} />
+                  <span style={{ color: t.body, fontSize: '14px', lineHeight: '1.6' }}>{item}</span>
+                </div>
+              ))}</div>
+            </div>
+          </AnimatedDiv>
+        ))}
+        <Newsletter T={t} />
+      </div>
+    </div>
+  );
+};
+
+const StoryPage = ({ lang, T }) => {
+  const t = T;
+  const isMobile = useIsMobile();
+  return (
+    <div style={{ paddingTop: '64px' }}>
+      <div style={{ background: 'linear-gradient(160deg,#040C16 0%,#0A0F1A 100%)', padding: isMobile ? '52px 20px 44px' : '88px 24px 72px' }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} />
+            <span style={{ color: '#4FC3F7', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700' }}>About</span>
+          </div>
+          <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '36px' : '56px', color: '#F8FAFC', letterSpacing: '-1px', lineHeight: '1.1', marginBottom: '20px' }}>{lang === 'en' ? 'My Story' : 'Taariikhda'}</h1>
+          <p style={{ color: '#64748B', fontSize: isMobile ? '15px' : '18px', lineHeight: '1.8', maxWidth: '560px' }}>{lang === 'en' ? "I am Somali-American from Columbus, Ohio. Cybersecurity professional. Community builder. Someone who believes deeply in Somalia." : "Waxaan ahay Soomaali-Maraykan ah oo ka ah Columbus, Ohio."}</p>
+        </div>
+      </div>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: isMobile ? '44px 20px' : '68px 24px' }}>
+        <AnimatedDiv style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1.6fr', gap: isMobile ? '28px' : '48px', alignItems: 'start', marginBottom: '64px', paddingBottom: '64px', borderBottom: `1px solid ${t.border}` }}>
+          <div>
+            <div style={{ width: '100%', paddingBottom: '100%', borderRadius: '16px', background: `linear-gradient(135deg,${t.soft},${t.lightBlue})`, position: 'relative', border: `1px solid ${t.border}` }}>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ fontSize: '48px' }}>🇸🇴</div>
+                <span style={{ color: t.mid, fontSize: '12px' }}>Photo coming soon</span>
+              </div>
+            </div>
+            <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {[['Based in','Columbus, Ohio'],['Field','Cybersecurity & IT'],['Education','MS Cybersecurity, WGU'],['Goal','Somalia 2040']].map(item => (
+                <div key={item[0]} style={{ display: 'flex', gap: '8px' }}>
+                  <span style={{ color: t.mid, fontSize: '11px', fontWeight: '700', minWidth: '72px', textTransform: 'uppercase' }}>{item[0]}</span>
+                  <span style={{ color: t.charcoal, fontSize: '13px' }}>{item[1]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p style={{ color: t.body, fontSize: isMobile ? '15px' : '17px', lineHeight: '1.95', marginBottom: '20px' }}>{lang === 'en' ? "I was born into the Somali diaspora, raised in Columbus, Ohio, shaped by two worlds. American by upbringing, Somali by roots, and restless by nature." : "Waxaan ku dhashay diaspora Soomaaliyeed, ku koray Columbus, Ohio."}</p>
+            <p style={{ color: t.body, fontSize: isMobile ? '15px' : '17px', lineHeight: '1.95', marginBottom: '20px' }}>{lang === 'en' ? "My career has been in cybersecurity and technology. I hold an AS in Computer Science from Columbus State, a BS in Business from Franklin University, and am completing an MS in Cybersecurity at Western Governors University." : "Shaqadeyda waxay ahayd ammaanka dijital iyo teknoolajiyada."}</p>
+            <p style={{ color: t.body, fontSize: isMobile ? '15px' : '17px', lineHeight: '1.95' }}>{lang === 'en' ? "Alongside that I have been building Kulan Group, platforms serving education, cybersecurity, and community for the Somali diaspora. Every project I build is practice for something bigger." : "Xagga kale waxaan dhisayaa Kulan Group."}</p>
+          </div>
+        </AnimatedDiv>
+        {[
+          { year: '2040', color: '#4FC3F7', heading: lang === 'en' ? 'Why Somalia?' : 'Sababta Soomaaliya?', body: lang === 'en' ? "It started as a feeling. A quiet but persistent sense that Somalia\'s future matters, and that people who understand technology and governance have something real to offer." : "Waxay bilaabatay dareen. Maaha qorshe." },
+          { year: 'Now', color: '#D97706', heading: lang === 'en' ? 'What I am building toward' : 'Waxa aan doonayo', body: lang === 'en' ? "A Somali political leader who understands technology, the diaspora, and the next generation. I am building that track record one project at a time." : "Hogaamiye siyaasadeed oo fahma teknoolajiyada, diaspora-da." },
+          { year: 'Core', color: '#10B981', heading: lang === 'en' ? 'What drives me' : 'Waxa i dhaqaajiyo', body: lang === 'en' ? "The diaspora gave me education, perspective, and opportunity. Somalia gave me identity, purpose, and the weight of belonging. I feel a responsibility to bridge those two things." : "Diaspora-da ayaa ii siisay waxbarasho. Soomaaliya ayaa ii siisay aqoonsiga." },
+        ].map((s, i) => (
+          <AnimatedDiv key={i} delay={i * 0.1} style={{ display: 'flex', gap: isMobile ? '16px' : '28px', marginBottom: '48px', paddingBottom: '48px', borderBottom: `1px solid ${t.border}` }}>
+            <div style={{ flexShrink: 0, width: '64px', textAlign: 'right' }}><div style={{ color: s.color, fontSize: '11px', fontWeight: '700' }}>{s.year}</div></div>
+            <div style={{ width: '2px', background: `linear-gradient(to bottom,${s.color},transparent)`, borderRadius: '2px', flexShrink: 0, marginTop: '3px' }} />
+            <div>
+              <h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '22px' : '26px', color: t.charcoal, marginBottom: '14px' }}>{s.heading}</h2>
+              <p style={{ color: t.body, fontSize: isMobile ? '15px' : '16px', lineHeight: '1.9' }}>{s.body}</p>
+            </div>
+          </AnimatedDiv>
+        ))}
+        <AnimatedDiv>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: '12px', marginBottom: '48px' }}>
+            {[['2','Degrees completed'],['MS','Currently studying'],['14+','Projects built'],['2040','The goal year']].map(item => (
+              <div key={item[0]} style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+                <div style={{ fontFamily: 'Playfair Display', fontSize: '28px', color: '#4FC3F7', fontWeight: '700', marginBottom: '6px' }}>{item[0]}</div>
+                <div style={{ color: t.mid, fontSize: '12px' }}>{item[1]}</div>
+              </div>
+            ))}
+          </div>
+        </AnimatedDiv>
+        <Newsletter T={t} />
+      </div>
+    </div>
+  );
+};
+
+const ReadingPage = ({ reading, lang, T }) => {
+  const t = T;
+  const isMobile = useIsMobile();
+  return (
+    <div style={{ paddingTop: '64px' }}>
+      <div style={{ background: 'linear-gradient(160deg,#040C16 0%,#0A0F1A 100%)', padding: isMobile ? '48px 20px 40px' : '72px 24px 56px' }}>
+        <div style={{ maxWidth: '780px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} />
+            <span style={{ color: '#4FC3F7', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700' }}>Library</span>
+          </div>
+          <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '36px' : '56px', color: '#F8FAFC', letterSpacing: '-1px', lineHeight: '1.1', marginBottom: '16px' }}>{lang === 'en' ? 'Reading List' : 'Buugaagta'}</h1>
+          <p style={{ color: '#475569', fontSize: '15px', lineHeight: '1.7' }}>{lang === 'en' ? 'Books and resources shaping my thinking on Somalia, governance, and leadership.' : 'Buugaag iyo xogaha qaabeeya fikradayda.'}</p>
+        </div>
+      </div>
+      <div style={{ maxWidth: '780px', margin: '0 auto', padding: isMobile ? '40px 20px' : '60px 24px' }}>
+        {reading.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: t.mid }}>
+            <div style={{ fontSize: '40px', marginBottom: '12px' }}>📚</div>
+            <p style={{ fontSize: '15px' }}>Reading list coming soon.</p>
+          </div>
+        ) : (
+          [...new Set(reading.map(r => r.category))].map(cat => (
+            <div key={cat} style={{ marginBottom: '48px' }}>
+              <AnimatedDiv><div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}><div style={{ height: '2px', width: '24px', background: '#D97706' }} /><span style={{ color: t.mid, fontSize: '10px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: '700' }}>{cat}</span></div></AnimatedDiv>
+              {reading.filter(r => r.category === cat).map((book, i) => (
+                <AnimatedDiv key={book.id} delay={i * 0.06}>
+                  <div style={{ background: t.soft, borderRadius: '12px', padding: '20px 24px', marginBottom: '12px', borderLeft: '3px solid #4FC3F7', transition: 'transform 0.2s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateX(4px)'} onMouseLeave={e => e.currentTarget.style.transform = 'translateX(0)'}>
+                    <div style={{ fontWeight: '600', color: t.charcoal, fontSize: '16px', marginBottom: '3px' }}>{book.title}</div>
+                    <div style={{ color: '#4FC3F7', fontSize: '13px', marginBottom: '8px', fontWeight: '500' }}>{book.author}</div>
+                    {book.note && <p style={{ color: t.body, fontSize: '13px', lineHeight: '1.7' }}>{book.note}</p>}
+                  </div>
+                </AnimatedDiv>
+              ))}
+            </div>
+          ))
+        )}
+        <Newsletter T={t} />
+      </div>
+    </div>
+  );
+};
+
+const ConnectPage = ({ voices, onVoiceSubmit, lang, monthlyQ, T }) => {
+  const t = T;
+  const isMobile = useIsMobile();
+  const [form, setForm] = useState({ author: '', location: '', text: '' });
+  const [submitted, setSubmitted] = useState(false);
+  const featured = voices.filter(v => v.featured);
+  const others = voices.filter(v => !v.featured);
+  const iStyle = { width: '100%', padding: '11px 13px', border: `1px solid ${t.border}`, borderRadius: '8px', fontSize: '14px', background: t.inputBg, color: t.charcoal, outline: 'none', fontFamily: "'DM Sans',sans-serif" };
+  const submit = async () => {
+    if (!form.author || !form.text) return;
+    await onVoiceSubmit({ ...form, featured: false, date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) });
+    setSubmitted(true);
+  };
+  return (
+    <div style={{ paddingTop: '64px' }}>
+      <div style={{ background: 'linear-gradient(160deg,#040C16 0%,#0A0F1A 100%)', padding: isMobile ? '48px 20px 40px' : '72px 24px 56px' }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} />
+            <span style={{ color: '#4FC3F7', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700' }}>Community</span>
+            <div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} />
+          </div>
+          <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '32px' : '48px', color: '#F8FAFC', letterSpacing: '-0.5px', lineHeight: '1.1', marginBottom: '16px' }}>{lang === 'en' ? "Let\'s Connect" : 'Aan Xiriirno'}</h1>
+          <p style={{ color: '#475569', fontSize: '15px', lineHeight: '1.8' }}>{lang === 'en' ? 'This space belongs to every Somali who has something to say.' : 'Meesha waxay u tahay Soomaali kasta oo wax yidhaahda.'}</p>
+        </div>
+      </div>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '40px 20px' : '60px 24px' }}>
+        {monthlyQ && (
+          <AnimatedDiv>
+            <div style={{ background: t.dark ? '#040C16' : '#0A0F1A', border: `1px solid ${t.border}`, borderRadius: '16px', padding: isMobile ? '28px 22px' : '44px', marginBottom: '48px', textAlign: 'center' }}>
+              <div style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '700' }}>Monthly Question</div>
+              <p style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '20px' : '26px', color: '#F8FAFC', lineHeight: '1.5', maxWidth: '600px', margin: '0 auto', fontStyle: 'italic' }}>"{monthlyQ}"</p>
+            </div>
+          </AnimatedDiv>
+        )}
+        {featured.length > 0 && (
+          <div style={{ marginBottom: '48px' }}>
+            <AnimatedDiv><div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}><div style={{ height: '2px', width: '24px', background: '#D97706' }} /><span style={{ color: t.mid, fontSize: '10px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: '700' }}>Featured Voices</span></div></AnimatedDiv>
+            {featured.map((v, i) => (
+              <AnimatedDiv key={v.id} delay={i * 0.07}>
+                <div style={{ background: t.soft, borderRadius: '12px', padding: '24px 28px', marginBottom: '14px', borderLeft: '3px solid #D97706' }}>
+                  <p style={{ color: t.charcoal, fontSize: isMobile ? '15px' : '17px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '12px' }}>"{v.text}"</p>
+                  <span style={{ color: t.mid, fontSize: '13px', fontWeight: '500' }}>{v.author}{v.location ? ` · ${v.location}` : ''}</span>
+                </div>
+              </AnimatedDiv>
+            ))}
+          </div>
+        )}
+        {others.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '14px', marginBottom: '48px' }}>
+            {others.map((v, i) => (
+              <AnimatedDiv key={v.id} delay={i * 0.05}>
+                <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px 22px' }}>
+                  <p style={{ color: t.body, fontSize: '14px', lineHeight: '1.75', marginBottom: '12px', fontStyle: 'italic' }}>"{v.text}"</p>
+                  <span style={{ color: t.mid, fontSize: '12px', fontWeight: '500' }}>{v.author}{v.location ? ` · ${v.location}` : ''}</span>
+                </div>
+              </AnimatedDiv>
+            ))}
+          </div>
+        )}
+        <AnimatedDiv>
+          <div style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '16px', padding: isMobile ? '28px 22px' : '40px' }}>
+            <h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '24px' : '30px', color: t.charcoal, marginBottom: '8px' }}>Share Your Voice</h2>
+            <p style={{ color: t.mid, fontSize: '14px', marginBottom: '28px', lineHeight: '1.6' }}>Submitted voices are reviewed before going live.</p>
+            {submitted ? (
+              <div style={{ background: '#ECFDF5', border: '1px solid #6EE7B7', borderRadius: '8px', padding: '16px 20px', color: '#065F46', fontSize: '14px', fontWeight: '500' }}>Thank you for sharing. Your voice has been submitted for review.</div>
+            ) : (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                  <input value={form.author} onChange={e => setForm({...form, author: e.target.value})} placeholder="Your name *" style={iStyle} />
+                  <input value={form.location} onChange={e => setForm({...form, location: e.target.value})} placeholder="Your city / country" style={iStyle} />
+                </div>
+                <textarea value={form.text} onChange={e => setForm({...form, text: e.target.value})} placeholder="Your thoughts on Somalia, politics, or the future..." rows={5} style={{ ...iStyle, resize: 'vertical', marginBottom: '16px' }} />
+                <Btn onClick={submit} T={t}>Submit Your Voice</Btn>
+              </>
+            )}
+          </div>
+        </AnimatedDiv>
+        <Newsletter T={t} />
+      </div>
+    </div>
+  );
+};
+
 const PostPage = ({ post, lang, setPage, onCommentSubmit, user, savedPostIds, onSavePost, onShowAuth, T }) => {
   const t = T;
   const isMobile = useIsMobile();
