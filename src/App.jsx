@@ -1325,7 +1325,7 @@ const AdminShell = ({ children, tab, setTab, onLogout, T }) => {
 };
 
 
-const AdminDash = ({ posts, voices }) => {
+const AdminDash = ({ posts, voices, T, onTabChange }) => {
   const t = T || getT(false);
   const stats = [
     { label: "Published Posts", value: posts.filter(p => p.published).length, color: '#4FC3F7' },
@@ -1363,7 +1363,7 @@ const AdminDash = ({ posts, voices }) => {
 };
 
 /* ─── ADMIN POSTS ─────────────────────────────────────────────── */
-const AdminPosts = ({ posts, onSave, onDelete, onToggle }) => {
+const AdminPosts = ({ posts, onSave, onDelete, onToggle, T }) => {
   const t = T || getT(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ title: "", title_so: "", excerpt: "", excerpt_so: "", content: "", content_so: "", published: false, featured: false });
