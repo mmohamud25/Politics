@@ -1054,6 +1054,99 @@ const UserMenu = ({ user, profile, onSignOut, onViewProfile, T }) => {
 };
 
 /* ─── PROFILE PAGE ─────────────────────────────────────────────── */
+
+const MarketingPage = ({ setPage, lang, voices, posts, T }) => {
+  const t = T;
+  const isMobile = useIsMobile();
+  const totalReads = posts.reduce((s, p) => s + (p.views || 0), 0);
+  const publishedCount = posts.filter(p => p.published).length;
+  return (
+    <div style={{ paddingTop: '64px' }}>
+      <div style={{ background: 'linear-gradient(160deg,#040C16 0%,#08111E 40%,#040C16 100%)', minHeight: isMobile ? '70vh' : '80vh', display: 'flex', alignItems: 'center', position: 'relative', overflow: 'hidden', padding: isMobile ? '60px 20px' : '80px 24px' }}>
+        <div style={{ position: 'absolute', top: '20%', right: '-5%', width: '500px', height: '500px', background: 'radial-gradient(circle,rgba(79,195,247,0.07),transparent)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+          <div className="fade-in" style={{ maxWidth: '720px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(79,195,247,0.08)', border: '1px solid rgba(79,195,247,0.15)', borderRadius: '20px', padding: '6px 14px', marginBottom: '28px' }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4FC3F7', animation: 'pulse 2s infinite' }} />
+              <span style={{ color: '#4FC3F7', fontSize: '12px', fontWeight: '600', letterSpacing: '1px' }}>Somalia 2040 · Build. Unite. Lead.</span>
+            </div>
+            <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '36px' : 'clamp(44px,5vw,68px)', color: '#F8FAFC', fontWeight: '700', lineHeight: '1.08', marginBottom: '24px', letterSpacing: '-1.5px' }}>
+              {lang === 'en' ? <>The platform for<br /><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>Somalia\'s</span> future<br />leaders.</> : <>Madasha<br /><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>mustaqbalka</span><br />hogaaminteeda.</>}
+            </h1>
+            <p style={{ color: '#64748B', fontSize: isMobile ? '15px' : '18px', lineHeight: '1.8', maxWidth: '520px', marginBottom: '40px' }}>
+              {lang === 'en' ? 'Essays, community voices, and an honest roadmap from a Somali-American who believes the diaspora has a role to play in shaping what comes next.' : 'Maqaallo, codadka bulshada, iyo qorshaha daacadda ah.'}
+            </p>
+            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+              <button onClick={() => setPage('blog')} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', padding: isMobile ? '13px 28px' : '15px 36px', borderRadius: '6px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.background='#7DD3F8'; e.currentTarget.style.transform='translateY(-2px)'; }} onMouseLeave={e => { e.currentTarget.style.background='#4FC3F7'; e.currentTarget.style.transform='translateY(0)'; }}>{lang === 'en' ? 'Read the essays' : 'Akhri maqaalada'}</button>
+              <button onClick={() => setPage('vision')} style={{ background: 'transparent', color: '#94A3B8', border: '1.5px solid #1A2D44', padding: isMobile ? '13px 28px' : '15px 36px', borderRadius: '6px', fontSize: '15px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor='#4FC3F7'; e.currentTarget.style.color='#4FC3F7'; }} onMouseLeave={e => { e.currentTarget.style.borderColor='#1A2D44'; e.currentTarget.style.color='#94A3B8'; }}>{lang === 'en' ? 'The Vision' : 'Aragtida'}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ background: t.soft, borderBottom: `1px solid ${t.border}`, padding: isMobile ? '24px 20px' : '28px 24px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: '24px' }}>
+          {[[publishedCount, lang==='en'?'Essays published':'Maqaallo'],[fmt(totalReads),lang==='en'?'Total reads':'Akhrinta'],[voices.length,lang==='en'?'Community voices':'Codadka'],['2040',lang==='en'?'The target year':'Sannadka']].map(([num,label]) => (
+            <div key={label} style={{ textAlign: 'center' }}>
+              <div style={{ fontFamily: 'Playfair Display', fontSize: '32px', color: '#4FC3F7', fontWeight: '700', lineHeight: '1' }}>{num}</div>
+              <div style={{ color: t.mid, fontSize: '13px', marginTop: '6px' }}>{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '52px 20px' : '80px 24px' }}>
+        <AnimatedDiv style={{ textAlign: 'center', marginBottom: '56px' }}>
+          <h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '28px' : '40px', color: t.charcoal, letterSpacing: '-0.5px', maxWidth: '600px', margin: '0 auto', lineHeight: '1.2' }}>{lang === 'en' ? 'Three things Somalia needs most.' : 'Saddexda wax oo Soomaaliya ugu baahan tahay.'}</h2>
+        </AnimatedDiv>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: '20px', marginBottom: '80px' }}>
+          {[
+            { icon: '💻', title: lang==='en'?'Technology & Governance':'Teknoolajiyada', body: lang==='en'?'Somalia needs leaders who understand digital infrastructure, cybersecurity, and e-governance.':'Soomaaliya waxay u baahan tahay hogaamineyaasha fahmaya kaabayaasha dijital.', color: '#4FC3F7' },
+            { icon: '🌍', title: lang==='en'?'Diaspora Power':'Xoogga Diaspora', body: lang==='en'?'Millions of educated, globally connected Somalis live abroad. Building channels for their expertise to flow home is one of the most important opportunities.':'Malaayin Soomaali ah oo waxbarashada leh ayaa dibadda ku nool.', color: '#D97706' },
+            { icon: '🤝', title: lang==='en'?'Unity Through Trust':'Midnimada', body: lang==='en'?'Unity comes from fair systems, accountable institutions, and leadership that genuinely listens.':'Midnimadu kuma timaado heshiis lagu khasbiyo.', color: '#10B981' },
+          ].map((pillar, i) => (
+            <AnimatedDiv key={i} delay={i*0.1}>
+              <div style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '16px', padding: '32px 28px', height: '100%', transition: 'transform 0.2s' }} onMouseEnter={e => e.currentTarget.style.transform='translateY(-4px)'} onMouseLeave={e => e.currentTarget.style.transform='translateY(0)'}>
+                <div style={{ fontSize: '36px', marginBottom: '16px' }}>{pillar.icon}</div>
+                <div style={{ width: '32px', height: '3px', background: pillar.color, borderRadius: '2px', marginBottom: '16px' }} />
+                <h3 style={{ fontFamily: 'Playfair Display', fontSize: '22px', color: t.charcoal, marginBottom: '14px' }}>{pillar.title}</h3>
+                <p style={{ color: t.body, fontSize: '15px', lineHeight: '1.8' }}>{pillar.body}</p>
+              </div>
+            </AnimatedDiv>
+          ))}
+        </div>
+
+        <AnimatedDiv style={{ marginBottom: '80px' }}>
+          <div style={{ background: t.dark ? '#040C16' : '#0A0F1A', borderRadius: '20px', padding: isMobile ? '36px 28px' : '56px 60px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, right: 0, width: '300px', height: '300px', background: 'radial-gradient(circle,rgba(79,195,247,0.06),transparent)', pointerEvents: 'none' }} />
+            <div style={{ fontFamily: 'Playfair Display', fontSize: '80px', color: '#4FC3F7', opacity: 0.15, lineHeight: '0.5', marginBottom: '20px' }}>"</div>
+            <p style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '20px' : '26px', color: '#F8FAFC', lineHeight: '1.6', marginBottom: '24px', maxWidth: '640px', fontStyle: 'italic' }}>
+              {lang === 'en' ? "It started as a feeling. A quiet but persistent sense that Somalia\'s future matters, and that people like me have something real to offer." : "Waxay bilaabatay dareen. Dareen degdeg ah oo adag oo ah in mustaqbalka Soomaaliya muhiim yahay."}
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(79,195,247,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>🇸🇴</div>
+              <div>
+                <div style={{ color: '#F8FAFC', fontSize: '14px', fontWeight: '600' }}>Mohamud Mohamed</div>
+                <div style={{ color: '#475569', fontSize: '12px' }}>Founder, Somalia 2040</div>
+              </div>
+            </div>
+          </div>
+        </AnimatedDiv>
+
+        <AnimatedDiv>
+          <div style={{ textAlign: 'center', padding: isMobile ? '40px 20px' : '60px 40px', background: t.soft, border: `1px solid ${t.border}`, borderRadius: '20px' }}>
+            <h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '28px' : '36px', color: t.charcoal, marginBottom: '14px' }}>{lang === 'en' ? 'Join the conversation.' : 'Ku biir xiriirka.'}</h2>
+            <p style={{ color: t.mid, fontSize: '16px', lineHeight: '1.7', maxWidth: '480px', margin: '0 auto 32px' }}>{lang === 'en' ? 'This is a space for every Somali who thinks deeply about the future.' : 'Meeshan waxay u tahay Soomaali kasta oo si qoto dheer u fikira mustaqbalka.'}</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => setPage('connect')} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', padding: '13px 30px', borderRadius: '6px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.background='#7DD3F8'; e.currentTarget.style.transform='translateY(-2px)'; }} onMouseLeave={e => { e.currentTarget.style.background='#4FC3F7'; e.currentTarget.style.transform='translateY(0)'; }}>{lang === 'en' ? "Let\'s Connect" : 'Aan Xiriirno'}</button>
+              <button onClick={() => setPage('blog')} style={{ background: 'transparent', color: t.charcoal, border: `1.5px solid ${t.border}`, padding: '13px 30px', borderRadius: '6px', fontSize: '14px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor='#4FC3F7'; e.currentTarget.style.color='#4FC3F7'; }} onMouseLeave={e => { e.currentTarget.style.borderColor=t.border; e.currentTarget.style.color=t.charcoal; }}>{lang === 'en' ? 'Read the Blog' : 'Blog-ka'}</button>
+            </div>
+          </div>
+        </AnimatedDiv>
+      </div>
+    </div>
+  );
+};
 const ProfilePage = ({ user, profile, savedPosts, posts, onUpdateProfile, onUnsave, T }) => {
   const t = T;
   const isMobile = useIsMobile();
@@ -1233,6 +1326,7 @@ const AdminShell = ({ children, tab, setTab, onLogout, T }) => {
 
 
 const AdminDash = ({ posts, voices }) => {
+  const t = T || getT(false);
   const stats = [
     { label: "Published Posts", value: posts.filter(p => p.published).length, color: '#4FC3F7' },
     { label: "Drafts", value: posts.filter(p => !p.published).length, color: '#D97706' },
@@ -1270,6 +1364,7 @@ const AdminDash = ({ posts, voices }) => {
 
 /* ─── ADMIN POSTS ─────────────────────────────────────────────── */
 const AdminPosts = ({ posts, onSave, onDelete, onToggle }) => {
+  const t = T || getT(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ title: "", title_so: "", excerpt: "", excerpt_so: "", content: "", content_so: "", published: false, featured: false });
   const [saving, setSaving] = useState(false);
@@ -1520,187 +1615,97 @@ const AdminTimeline = ({ timeline, onUpdate , T }) => {  const t = T || getT(fal
 };
 
 /* ─── ADMIN SETTINGS ──────────────────────────────────────────── */
-const AdminSettings = ({ setPage }) => (
-  <div className="fade-in">
-    <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal, marginBottom: "28px" }}>Settings</h1>
-    <div style={{ background: '#FFFFFF', borderRadius: "12px", padding: "28px", maxWidth: "500px" }}>
-      {[["Site URL", "politics.mmohamud.me"], ["Admin Email", ADMIN_EMAIL], ["Site Title", "Somalia 2040"]].map(([label, val]) => (
-        <div key={label} style={{ marginBottom: "20px" }}>
-          <label style={{ color: t.mid, fontSize: "12px", display: "block", marginBottom: "6px" }}>{label}</label>
-          <input defaultValue={val} style={{ width: "100%", padding: "10px 12px", border: `1px solid ${t.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", outline: "none" }} />
-        </div>
-      ))}
-      <Divider />
-      <div onClick={() => setPage("home")} style={{ color: '#4FC3F7', fontSize: "14px", cursor: "pointer", fontWeight: "500" }}>← View Public Site</div>
-    </div>
-  </div>
-);
+const AdminSettings = ({ setPage, siteTitle, onUpdateTitle, T }) => {
+  const t = T || getT(false);
+  const isMobile = useIsMobile();
+  const [title, setTitle] = useState(siteTitle || 'Somalia');
+  const [saved, setSaved] = useState(false);
+  const [annMsg, setAnnMsg] = useState('');
+  const [annColor, setAnnColor] = useState('#4FC3F7');
+  const [annSaved, setAnnSaved] = useState(false);
+  const [scheduledCount, setScheduledCount] = useState(0);
 
-/* ─── MAIN APP ────────────────────────────────────────────────── */
-/* ─── ADMIN ANALYTICS ─────────────────────────────────────────── */
-const AdminAnalytics = ({ T }) => {
-  const t = T; const isMobile = useIsMobile();
-  const [summary, setSummary] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [days, setDays] = useState(30);
-  useEffect(() => {
-    const load = async () => { setLoading(true); const s = await getAnalyticsSummary(days); setSummary(s); setLoading(false); };
-    load();
-  }, [days]);
-  const maxD = summary?.dailyViews?.length > 0 ? Math.max(...summary.dailyViews.map(([,v]) => v), 1) : 1;
+  const saveTitle = async () => { await onUpdateTitle(title); setSaved(true); setTimeout(() => setSaved(false), 2000); };
+  const saveAnn = async () => { await saveAnnouncement(annMsg, annColor); setAnnSaved(true); setTimeout(() => setAnnSaved(false), 2000); };
+  const clearAnn = async () => { await clearAnnouncement(); setAnnMsg(''); };
+  const runScheduled = async () => { const n = await publishScheduledPosts(); setScheduledCount(n); setTimeout(() => setScheduledCount(0), 3000); };
+
+  const COLORS = ['#4FC3F7', '#D97706', '#10B981', '#EF4444', '#8B5CF6', '#F59E0B'];
+  const iStyle = { width: '100%', padding: '9px 11px', border: `1px solid ${t.border}`, borderRadius: '8px', fontSize: '13px', background: t.inputBg, color: t.charcoal, outline: 'none', fontFamily: "'DM Sans',sans-serif" };
+
   return (
     <div className="fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-        <div><h1 style={{ fontFamily: 'Playfair Display', fontSize: '26px', color: t.charcoal, letterSpacing: '-0.3px' }}>Analytics</h1><p style={{ color: t.mid, fontSize: '13px', marginTop: '4px' }}>Visitor insights</p></div>
-        <div style={{ display: 'flex', gap: '6px' }}>{[7,30,90].map(d => (<button key={d} onClick={() => setDays(d)} style={{ padding: '7px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', border: `1px solid ${days === d ? '#4FC3F7' : t.border}`, background: days === d ? 'rgba(79,195,247,0.1)' : t.card, color: days === d ? '#4FC3F7' : t.mid }}>{d}d</button>))}</div>
-      </div>
-      {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}><Spinner /></div> : !summary ? <p style={{ color: t.mid }}>No data yet.</p> : (
-        <>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: '12px', marginBottom: '20px' }}>
-            {[{ label: 'Page Views', value: summary.totalViews, color: '#4FC3F7' }, { label: 'Sessions', value: summary.uniqueSessions, color: '#D97706' }, { label: 'Mobile', value: summary.devices?.mobile || 0, color: '#10B981' }, { label: 'Desktop', value: summary.devices?.desktop || 0, color: '#8B5CF6' }].map(s => (
-              <div key={s.label} style={{ background: t.card, borderRadius: '12px', padding: '20px', border: `1px solid ${t.border}`, borderTop: `3px solid ${s.color}` }}>
-                <div style={{ fontSize: '28px', fontWeight: '700', color: s.color, fontFamily: 'Playfair Display' }}>{s.value}</div>
-                <div style={{ color: t.mid, fontSize: '12px', marginTop: '3px' }}>{s.label}</div>
-              </div>
+      <h1 style={{ fontFamily: 'Playfair Display', fontSize: '26px', color: t.charcoal, marginBottom: '24px', letterSpacing: '-0.3px' }}>Settings</h1>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
+
+        {/* Site Identity */}
+        <div style={{ background: t.card, borderRadius: '12px', padding: '24px', border: `1px solid ${t.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
+            <div style={{ width: '3px', height: '16px', background: '#4FC3F7', borderRadius: '2px' }} />
+            <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal }}>Site Identity</h3>
+          </div>
+          <label style={{ color: t.mid, fontSize: '11px', display: 'block', marginBottom: '4px', fontWeight: '700', letterSpacing: '0.5px' }}>SITE TITLE</label>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+            <input value={title} onChange={e => setTitle(e.target.value)} style={{ ...iStyle, flex: 1 }} />
+            <Btn small onClick={saveTitle} T={t} style={{ background: saved ? '#10B981' : undefined }}>{saved ? '✓ Saved' : 'Save'}</Btn>
+          </div>
+          <p style={{ color: t.mid, fontSize: '12px', marginBottom: '20px' }}>Shows as "{title} 2040" across the site.</p>
+          {[['Site URL', 'politics.mmohamud.me'], ['Admin Email', 'mohamedmohammud@gmail.com']].map(([l, v]) => (
+            <div key={l} style={{ marginBottom: '12px' }}>
+              <label style={{ color: t.mid, fontSize: '11px', display: 'block', marginBottom: '3px', fontWeight: '700', letterSpacing: '0.5px' }}>{l.toUpperCase()}</label>
+              <input defaultValue={v} readOnly style={{ ...iStyle, background: t.soft, color: t.mid }} />
+            </div>
+          ))}
+        </div>
+
+        {/* Announcement Banner */}
+        <div style={{ background: t.card, borderRadius: '12px', padding: '24px', border: `1px solid ${t.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
+            <div style={{ width: '3px', height: '16px', background: '#D97706', borderRadius: '2px' }} />
+            <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal }}>Announcement Banner</h3>
+          </div>
+          <p style={{ color: t.mid, fontSize: '13px', marginBottom: '14px', lineHeight: '1.5' }}>Show a banner across the top of the site.</p>
+          <label style={{ color: t.mid, fontSize: '11px', display: 'block', marginBottom: '4px', fontWeight: '700', letterSpacing: '0.5px' }}>MESSAGE</label>
+          <textarea value={annMsg} onChange={e => setAnnMsg(e.target.value)} rows={2} placeholder="e.g. New essay published!" style={{ ...iStyle, resize: 'vertical', marginBottom: '12px' }} />
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+            {COLORS.map(c => (
+              <div key={c} onClick={() => setAnnColor(c)} style={{ width: '28px', height: '28px', borderRadius: '50%', background: c, cursor: 'pointer', border: annColor === c ? '3px solid white' : '2px solid transparent', boxShadow: annColor === c ? `0 0 0 2px ${c}` : 'none', transition: 'all 0.15s' }} />
             ))}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.6fr 1fr', gap: '16px', marginBottom: '16px' }}>
-            <div style={{ background: t.card, borderRadius: '12px', padding: '22px', border: `1px solid ${t.border}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                <div style={{ width: '3px', height: '16px', background: '#4FC3F7', borderRadius: '2px' }} />
-                <h3 style={{ fontFamily: 'Playfair Display', fontSize: '16px', color: t.charcoal }}>Daily Views — Last {days} days</h3>
-              </div>
-              {summary.dailyViews.length === 0 ? <p style={{ color: t.mid, fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No data for this period yet.</p> : (
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '120px' }}>
-                  {summary.dailyViews.map(([date, views]) => (
-                    <div key={date} title={`${date}: ${views} views`} style={{ flex: 1, height: `${Math.max(4, (views / maxD) * 100)}%`, background: 'rgba(79,195,247,0.5)', borderRadius: '2px 2px 0 0', minHeight: '4px', transition: 'background 0.2s', cursor: 'default' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,195,247,0.9)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(79,195,247,0.5)'} />
-                  ))}
-                </div>
-              )}
-            </div>
-            <div style={{ background: t.card, borderRadius: '12px', padding: '22px', border: `1px solid ${t.border}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-                <div style={{ width: '3px', height: '16px', background: '#D97706', borderRadius: '2px' }} />
-                <h3 style={{ fontFamily: 'Playfair Display', fontSize: '16px', color: t.charcoal }}>Devices</h3>
-              </div>
-              {Object.entries(summary.devices || {}).filter(([,v]) => v > 0).map(([device, count]) => {
-                const total = Object.values(summary.devices || {}).reduce((s,v) => s+v, 0) || 1;
-                const pct = Math.round((count/total)*100);
-                const colors = { desktop: '#4FC3F7', mobile: '#D97706', tablet: '#10B981' };
-                return (
-                  <div key={device} style={{ marginBottom: '14px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                      <span style={{ color: t.charcoal, fontSize: '13px', fontWeight: '500' }}>{device.charAt(0).toUpperCase()+device.slice(1)}</span>
-                      <span style={{ color: colors[device] || '#4FC3F7', fontSize: '13px', fontWeight: '700' }}>{pct}%</span>
-                    </div>
-                    <div style={{ height: '6px', background: t.border, borderRadius: '3px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, background: colors[device] || '#4FC3F7', borderRadius: '3px' }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          {annMsg && <div style={{ background: annColor, borderRadius: '8px', padding: '10px 16px', marginBottom: '12px', textAlign: 'center' }}><span style={{ color: '#FFF', fontSize: '13px', fontWeight: '500' }}>{annMsg}</span></div>}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Btn small onClick={saveAnn} T={t} style={{ background: annSaved ? '#10B981' : undefined }}>{annSaved ? '✓ Live' : 'Set Banner'}</Btn>
+            <Btn small outline onClick={clearAnn} T={t}>Clear</Btn>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
-            <div style={{ background: t.card, borderRadius: '12px', padding: '22px', border: `1px solid ${t.border}` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}><div style={{ width: '3px', height: '16px', background: '#10B981', borderRadius: '2px' }} /><h3 style={{ fontFamily: 'Playfair Display', fontSize: '16px', color: t.charcoal }}>Top Pages</h3></div>
-              {summary.topPages.length === 0 ? <p style={{ color: t.mid, fontSize: '13px' }}>No data yet.</p> : summary.topPages.map(([page, views], i) => (
-                <div key={page} style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderBottom: i < summary.topPages.length-1 ? `1px solid ${t.border}` : 'none' }}>
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: 1, minWidth: 0 }}>
-                    <span style={{ color: t.mid, fontSize: '11px', fontWeight: '700', width: '16px', flexShrink: 0 }}>{i+1}</span>
-                    <span style={{ color: t.charcoal, fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{page || 'home'}</span>
-                  </div>
-                  <span style={{ color: '#10B981', fontSize: '13px', fontWeight: '700', marginLeft: '12px', flexShrink: 0 }}>{views}</span>
-                </div>
-              ))}
-            </div>
-            <div style={{ background: 'linear-gradient(135deg, #040C16, #0F1E30)', borderRadius: '12px', padding: '22px', border: '1px solid #1A2D44' }}>
-              <div style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '700', marginBottom: '10px' }}>Power tip</div>
-              <p style={{ color: '#94A3B8', fontSize: '13px', lineHeight: '1.6', marginBottom: '12px' }}>For geographic data and user journeys, connect Google Analytics 4. You already have GA4 experience from Kulan Institute.</p>
-              <a href="https://analytics.google.com" target="_blank" rel="noreferrer" style={{ color: '#4FC3F7', fontSize: '12px', fontWeight: '600', textDecoration: 'none' }}>Open Google Analytics →</a>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
+        </div>
 
-/* ─── MARKETING PAGE ───────────────────────────────────────────── */
-const MarketingPage = ({ setPage, lang, voices, posts, T }) => {
-  const t = T; const isMobile = useIsMobile();
-  const totalReads = posts.reduce((s,p) => s+(p.views||0), 0);
-  const pubCount = posts.filter(p => p.published).length;
-  return (
-    <div style={{ paddingTop: '64px' }}>
-      <div style={{ background: 'linear-gradient(160deg, #040C16 0%, #08111E 40%, #040C16 100%)', minHeight: isMobile ? '70vh' : '80vh', display: 'flex', alignItems: 'center', position: 'relative', overflow: 'hidden', padding: isMobile ? '60px 20px' : '80px 24px' }}>
-        <div style={{ position: 'absolute', top: '20%', right: '-5%', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(79,195,247,0.07), transparent)', pointerEvents: 'none' }} />
-        <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
-          <div className="fade-in" style={{ maxWidth: '720px' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(79,195,247,0.08)', border: '1px solid rgba(79,195,247,0.15)', borderRadius: '20px', padding: '6px 14px', marginBottom: '28px' }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4FC3F7', animation: 'pulse 2s infinite' }} />
-              <span style={{ color: '#4FC3F7', fontSize: '12px', fontWeight: '600', letterSpacing: '1px' }}>Somalia 2040 · Build. Unite. Lead.</span>
-            </div>
-            <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '36px' : 'clamp(44px,5vw,68px)', color: '#F8FAFC', fontWeight: '700', lineHeight: '1.08', marginBottom: '24px', letterSpacing: '-1.5px' }}>
-              {lang === 'en' ? <>The platform for<br /><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>Somalia&apos;s</span> future leaders.</> : <>Madasha hogaaminteeda mustaqbalka.</>}
-            </h1>
-            <p style={{ color: '#64748B', fontSize: isMobile ? '15px' : '18px', lineHeight: '1.8', maxWidth: '520px', marginBottom: '40px' }}>{lang === 'en' ? 'Essays, community voices, and an honest roadmap from a Somali-American who believes the diaspora has a role to play.' : 'Maqaallo, codadka bulshada, iyo qorshaha daacadda ah.'}</p>
-            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-              <button onClick={() => setPage('blog')} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', padding: isMobile ? '13px 28px' : '15px 36px', borderRadius: '6px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.background = '#7DD3F8'; e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseLeave={e => { e.currentTarget.style.background = '#4FC3F7'; e.currentTarget.style.transform = 'translateY(0)'; }}>{lang === 'en' ? 'Read the essays' : 'Akhri maqaalada'}</button>
-              <button onClick={() => setPage('vision')} style={{ background: 'transparent', color: '#94A3B8', border: '1.5px solid #1A2D44', padding: isMobile ? '13px 28px' : '15px 36px', borderRadius: '6px', fontSize: '15px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#4FC3F7'; e.currentTarget.style.color = '#4FC3F7'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = '#1A2D44'; e.currentTarget.style.color = '#94A3B8'; }}>{lang === 'en' ? 'The Vision' : 'Aragtida'}</button>
-            </div>
+        {/* Scheduled Posts */}
+        <div style={{ background: t.card, borderRadius: '12px', padding: '24px', border: `1px solid ${t.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
+            <div style={{ width: '3px', height: '16px', background: '#8B5CF6', borderRadius: '2px' }} />
+            <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal }}>Scheduled Posts</h3>
           </div>
+          <p style={{ color: t.mid, fontSize: '13px', marginBottom: '16px', lineHeight: '1.6' }}>Click to publish any posts whose scheduled time has passed.</p>
+          <Btn small onClick={runScheduled} T={t} style={{ background: scheduledCount > 0 ? '#10B981' : undefined }}>
+            {scheduledCount > 0 ? `✓ Published ${scheduledCount}` : '⏰ Run Scheduler'}
+          </Btn>
         </div>
-      </div>
-      <div style={{ background: t.soft, borderBottom: `1px solid ${t.border}`, padding: isMobile ? '24px 20px' : '28px 24px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: '24px' }}>
-          {[{ num: pubCount, label: lang === 'en' ? 'Essays published' : 'Maqaallo la daabacay' }, { num: fmt(totalReads), label: lang === 'en' ? 'Total reads' : 'Akhrinta guud' }, { num: voices.length, label: lang === 'en' ? 'Community voices' : 'Codadka bulshada' }, { num: '2040', label: lang === 'en' ? 'The target year' : 'Sannadka bartilmaameedka' }].map(item => (
-            <div key={item.label} style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: 'Playfair Display', fontSize: '32px', color: '#4FC3F7', fontWeight: '700', lineHeight: '1' }}>{item.num}</div>
-              <div style={{ color: t.mid, fontSize: '13px', marginTop: '6px' }}>{item.label}</div>
-            </div>
+
+        {/* Quick Links */}
+        <div style={{ background: t.card, borderRadius: '12px', padding: '24px', border: `1px solid ${t.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
+            <div style={{ width: '3px', height: '16px', background: '#10B981', borderRadius: '2px' }} />
+            <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal }}>Quick Links</h3>
+          </div>
+          {[
+            ['🌐 View Public Site', () => setPage('home')],
+          ].map(([label, action]) => (
+            <div key={label} onClick={action} style={{ padding: '10px 0', borderBottom: `1px solid ${t.border}`, cursor: 'pointer', color: t.charcoal, fontSize: '13px', fontWeight: '500', transition: 'color 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#4FC3F7'}
+              onMouseLeave={e => e.currentTarget.style.color = t.charcoal}
+            >{label}</div>
           ))}
         </div>
-      </div>
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '52px 20px' : '80px 24px' }}>
-        <AnimatedDiv style={{ textAlign: 'center', marginBottom: '56px' }}>
-          <h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '28px' : '40px', color: t.charcoal, letterSpacing: '-0.5px', maxWidth: '600px', margin: '0 auto', lineHeight: '1.2' }}>{lang === 'en' ? 'Three things Somalia needs most.' : 'Saddexda wax oo Soomaaliya ugu baahan tahay.'}</h2>
-        </AnimatedDiv>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: '20px', marginBottom: '80px' }}>
-          {[{ icon: '💻', title: lang === 'en' ? 'Technology & Governance' : 'Teknoolajiyada & Xukuumadda', body: lang === 'en' ? 'Somalia needs leaders who understand digital infrastructure, cybersecurity, and e-governance. Technology is the foundation of modern statehood.' : 'Soomaaliya waxay u baahan tahay hogaamineyaasha fahmaya kaabayaasha dijital.', color: '#4FC3F7' },
-           { icon: '🌍', title: lang === 'en' ? 'Diaspora Power' : 'Xoogga Diaspora', body: lang === 'en' ? 'Millions of educated, globally connected Somalis live abroad. Building channels for their expertise and capital to flow home is one of the greatest untapped opportunities.' : 'Malaayin Soomaali ah oo waxbarashada leh ayaa dibadda ku nool.', color: '#D97706' },
-           { icon: '🤝', title: lang === 'en' ? 'Unity Through Trust' : 'Midnimada Xoogga Aaminaadda', body: lang === 'en' ? 'Unity is not forced agreement. It comes from fair systems, accountable institutions, and leadership that genuinely listens.' : 'Midnimadu kuma timaado heshiis lagu khasbiyo.', color: '#10B981' }].map((p, i) => (
-            <AnimatedDiv key={i} delay={i * 0.1}>
-              <div style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '16px', padding: '32px 28px', height: '100%', transition: 'transform 0.2s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'} onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                <div style={{ fontSize: '36px', marginBottom: '16px' }}>{p.icon}</div>
-                <div style={{ width: '32px', height: '3px', background: p.color, borderRadius: '2px', marginBottom: '16px' }} />
-                <h3 style={{ fontFamily: 'Playfair Display', fontSize: '22px', color: t.charcoal, marginBottom: '14px', letterSpacing: '-0.2px', lineHeight: '1.3' }}>{p.title}</h3>
-                <p style={{ color: t.body, fontSize: '15px', lineHeight: '1.8' }}>{p.body}</p>
-              </div>
-            </AnimatedDiv>
-          ))}
-        </div>
-        <AnimatedDiv style={{ marginBottom: '60px' }}>
-          <div style={{ background: t.dark ? '#040C16' : '#0A0F1A', borderRadius: '20px', padding: isMobile ? '36px 28px' : '56px 60px', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: 0, right: 0, width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(79,195,247,0.06), transparent)', pointerEvents: 'none' }} />
-            <div style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '60px' : '80px', color: '#4FC3F7', opacity: 0.15, lineHeight: '0.5', marginBottom: '20px' }}>"</div>
-            <p style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '20px' : '26px', color: '#F8FAFC', lineHeight: '1.6', marginBottom: '24px', maxWidth: '640px', fontStyle: 'italic', letterSpacing: '-0.2px' }}>{lang === 'en' ? "It started as a feeling. Not a plan, not a calculation. A quiet but persistent sense that Somalia's future matters, and that people like me have something real to offer." : "Waxay bilaabatay dareen. Maaha qorshe, maahan xisaab."}</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(79,195,247,0.15)', border: '1px solid rgba(79,195,247,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>🇸🇴</div>
-              <div><div style={{ color: '#F8FAFC', fontSize: '14px', fontWeight: '600' }}>Mohamud Mohamed</div><div style={{ color: '#475569', fontSize: '12px' }}>Founder, Somalia 2040</div></div>
-            </div>
-          </div>
-        </AnimatedDiv>
-        <AnimatedDiv>
-          <div style={{ textAlign: 'center', padding: isMobile ? '40px 20px' : '60px 40px', background: t.soft, border: `1px solid ${t.border}`, borderRadius: '20px' }}>
-            <h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '28px' : '36px', color: t.charcoal, marginBottom: '14px', letterSpacing: '-0.3px' }}>{lang === 'en' ? 'Join the conversation.' : 'Ku biir xiriirka.'}</h2>
-            <p style={{ color: t.mid, fontSize: '16px', lineHeight: '1.7', maxWidth: '480px', margin: '0 auto 32px' }}>{lang === 'en' ? 'This is a space for every Somali who thinks deeply about the future.' : 'Meeshan waxay u tahay Soomaali kasta oo si qoto dheer u fikira mustaqbalka.'}</p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button onClick={() => setPage('connect')} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', padding: '13px 30px', borderRadius: '6px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.background = '#7DD3F8'; e.currentTarget.style.transform = 'translateY(-2px)'; }} onMouseLeave={e => { e.currentTarget.style.background = '#4FC3F7'; e.currentTarget.style.transform = 'translateY(0)'; }}>{lang === 'en' ? "Let's Connect" : 'Aan Xiriirno'}</button>
-              <button onClick={() => setPage('blog')} style={{ background: 'transparent', color: t.charcoal, border: `1.5px solid ${t.border}`, padding: '13px 30px', borderRadius: '6px', fontSize: '14px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#4FC3F7'; e.currentTarget.style.color = '#4FC3F7'; }} onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.charcoal; }}>{lang === 'en' ? 'Read the Blog' : 'Blog-ka'}</button>
-            </div>
-          </div>
-        </AnimatedDiv>
       </div>
     </div>
   );
