@@ -1757,10 +1757,10 @@ export default function App() {
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [p, v, r, w, q, tl, st, wa, ann] = await Promise.all([
+      const [p, v, r, w, q, tl, st, wa] = await Promise.all([
         getPosts(), getVoices(), getReading(),
         getSetting('word_of_week'), getSetting('monthly_question'), getSetting('timeline'),
-        getSetting('site_title'), getWordArchive(), getAnnouncement(),
+        getSetting('site_title'), getWordArchive(),
       ]);
       setPosts(p || []); setVoices(v || []); setReading(r || []);
       if (w) setWord(w);
@@ -1768,7 +1768,8 @@ export default function App() {
       if (tl) setTimeline(tl);
       if (st) setSiteTitle(typeof st === 'string' ? st : 'Somalia');
       setWordArchive(wa || []);
-      if (ann) setAnnouncement(ann);
+      // Load announcement separately - isolated from main load
+      try { const ann = await getAnnouncement(); if (ann) setAnnouncement(ann); } catch {}
     } catch (err) {
       console.error('loadAll error:', err);
     } finally {

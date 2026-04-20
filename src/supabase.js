@@ -224,8 +224,11 @@ export const getAnalyticsSummary = async (days = 30) => {
 
 /* ─── ANNOUNCEMENTS ──────────────────────────────────────────── */
 export const getAnnouncement = async () => {
-  const { data } = await supabase.from('somalia_announcements').select('*').eq('active', true).single();
-  return data || null;
+  try {
+    const { data, error } = await supabase.from('somalia_announcements').select('*').eq('active', true).maybeSingle();
+    if (error) return null; // table may not exist yet
+    return data || null;
+  } catch { return null; }
 };
 
 export const saveAnnouncement = async (msg, color) => {
