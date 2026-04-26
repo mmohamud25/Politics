@@ -75,9 +75,7 @@ const GlobalStyles = ({ dark }) => {
     [contenteditable] blockquote { border-left: 3px solid #4FC3F7; padding-left: 12px; margin: 8px 0; color: #6B7280; font-style: italic; }
     [contenteditable] ul,[contenteditable] ol { padding-left: 20px; margin: 6px 0; }
     [contenteditable] img { max-width: 100%; border-radius: 8px; margin: 8px 0;
-    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
-    .skip-link { position: fixed; top: -100px; left: 12px; background: #4FC3F7; color: #0A0F1A; padding: 8px 16px; font-size: 13px; font-weight: 700; z-index: 10000; border-radius: 0 0 8px 8px; text-decoration: none; transition: top 0.15s; }
-    .skip-link:focus { top: 0; outline: 2px solid #0A0F1A; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } } }
   `;
   return <style>{css}</style>;
 };
@@ -2452,7 +2450,6 @@ export default function App() {
     <>
       <GlobalStyles dark={dark} />
       <MetaTags page={page} post={page === 'post' ? activePost : null} siteTitle={siteTitle} />
-      <a href="#main-content" className="skip-link">Skip to content</a>
       <div style={{ minHeight: '100vh', background: T.bg, fontFamily: "'DM Sans',sans-serif" }}>
         {announcement && announcement.active && (
           <AnnouncementBanner message={announcement.message} color={announcement.color} />
