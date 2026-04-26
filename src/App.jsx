@@ -49,7 +49,8 @@ const GlobalStyles = ({ dark }) => {
   const css = `
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body { overflow-x: hidden; max-width: 100vw; }
     body { font-family: 'DM Sans', sans-serif; background: ${dark ? '#08111E' : '#FAFAF8'}; transition: background 0.4s; overflow-x: hidden; }
     ::selection { background: rgba(79,195,247,0.25); }
     ::-webkit-scrollbar { width: 3px; }
@@ -77,6 +78,14 @@ const GlobalStyles = ({ dark }) => {
     [contenteditable] img { max-width: 100%; border-radius: 8px; margin: 8px 0;
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } } }
   `;
+  useEffect(() => {
+    if (!document.querySelector('link[rel="icon"]')) {
+      const link = document.createElement('link');
+      link.rel = 'icon'; link.type = 'image/svg+xml';
+      link.href = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='9' fill='%234FC3F7'/%3E%3Cpolygon points='20,7 23.1,16.6 33,16.6 25.4,22.2 28.5,31.8 20,26.2 11.5,31.8 14.6,22.2 7,16.6 16.9,16.6' fill='white'/%3E%3C/svg%3E";
+      document.head.appendChild(link);
+    }
+  }, []);
   return <style>{css}</style>;
 };
 
@@ -312,7 +321,7 @@ const Nav = ({ page, setPage, lang, setLang, dark, setDark, T, siteTitle, user, 
               {user ? (
                 <UserMenu user={user} profile={userProfile} onSignOut={onSignOut} onViewProfile={() => go('profile')} T={T} />
               ) : (
-                <button onClick={onShowAuth} style={{ background: 'rgba(79,195,247,0.1)', border: '1px solid rgba(79,195,247,0.2)', borderRadius: '6px', padding: '6px 14px', fontSize: '12px', cursor: 'pointer', color: '#4FC3F7', fontWeight: '600', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>Sign In</button>
+                <button onClick={onShowAuth} style={{ background: 'rgba(79,195,247,0.1)', border: '1px solid rgba(79,195,247,0.2)', borderRadius: '6px', padding: '6px 14px', fontSize: '12px', cursor: 'pointer', color: '#4FC3F7', fontWeight: '600', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>Reader Login</button>
               )}
             </div>
           )}
@@ -412,6 +421,19 @@ const HomePage = ({ posts, lang, word, wordArchive, setPage, setCurrentPost, voi
       <div style={{ background: 'linear-gradient(160deg,#040C16 0%,#08111E 50%,#040C16 100%)', minHeight: isMobile ? '80vh' : '90vh', display: 'flex', alignItems: 'center', position: 'relative', overflow: 'hidden', padding: isMobile ? '80px 20px 60px' : '80px 24px' }}>
         <div style={{ position: 'absolute', top: '15%', right: '-5%', width: '500px', height: '500px', background: 'radial-gradient(circle,rgba(79,195,247,0.07),transparent)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: '10%', left: '-5%', width: '400px', height: '400px', background: 'radial-gradient(circle,rgba(217,119,6,0.04),transparent)', pointerEvents: 'none' }} />
+        {!isMobile && (
+          <div style={{ position: 'absolute', right: '5%', top: '50%', transform: 'translateY(-50%)', opacity: 0.06, pointerEvents: 'none', userSelect: 'none' }}>
+            <svg width="420" height="420" viewBox="0 0 420 420" fill="none">
+              <circle cx="210" cy="210" r="200" stroke="#4FC3F7" strokeWidth="1" strokeDasharray="6 4" />
+              <circle cx="210" cy="210" r="150" stroke="#4FC3F7" strokeWidth="0.5" strokeDasharray="4 6" />
+              <circle cx="210" cy="210" r="100" stroke="#4FC3F7" strokeWidth="0.5" />
+              <polygon points="210,60 223,100 265,100 232,124 244,165 210,142 176,165 188,124 155,100 197,100" fill="#4FC3F7" />
+              {[0,45,90,135,180,225,270,315].map((deg, i) => (
+                <circle key={i} cx={210 + 200 * Math.cos(deg * Math.PI / 180)} cy={210 + 200 * Math.sin(deg * Math.PI / 180)} r="3" fill="#4FC3F7" />
+              ))}
+            </svg>
+          </div>
+        )}
         <div style={{ maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           <div className="fade-in" style={{ maxWidth: isMobile ? '100%' : '700px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px' }}>
@@ -419,7 +441,7 @@ const HomePage = ({ posts, lang, word, wordArchive, setPage, setCurrentPost, voi
               <span style={{ color: '#4FC3F7', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700' }}>Hiigsiga 2040</span>
             </div>
             <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: isMobile ? '38px' : 'clamp(50px,6vw,78px)', color: '#F8FAFC', fontWeight: '700', lineHeight: '1.06', marginBottom: '24px', letterSpacing: '-1.5px' }}>
-              {lang === 'en' ? <><span>Building the </span><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>future</span><br />Somalia deserves.</> : <><span>Dhisidda </span><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>mustaqbalka</span><br />Soomaaliya mudan.</>}
+              {lang === 'en' ? <><span>Building the </span><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>future </span><br />Somalia deserves.</> : <><span>Dhisidda </span><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>mustaqbalka</span><br />Soomaaliya mudan.</>}
             </h1>
             <p style={{ color: '#64748B', fontSize: isMobile ? '15px' : '18px', lineHeight: '1.8', maxWidth: '520px', marginBottom: '40px' }}>
               {lang === 'en' ? 'A personal space for honest thinking, Somali voices, and the long work of imagining what could be.' : 'Meel shakhsi ah oo loogu talagalay fikraddii daacadda ah, codadka Soomaalida.'}
@@ -430,7 +452,7 @@ const HomePage = ({ posts, lang, word, wordArchive, setPage, setCurrentPost, voi
             </div>
           </div>
         </div>
-        <div style={{ position: 'absolute', bottom: '32px', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', animation: 'pulse 2s infinite' }}>
+        <div onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })} style={{ position: 'absolute', bottom: '32px', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', animation: 'pulse 2s infinite', cursor: 'pointer' }}>
           <span style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '700', marginBottom: '6px', opacity: 0.7 }}>Scroll</span>
           <div style={{ width: '1px', height: '40px', background: 'linear-gradient(to bottom,rgba(79,195,247,0.3),#4FC3F7)' }} />
           <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4FC3F7', boxShadow: '0 0 8px #4FC3F7' }} />
@@ -455,13 +477,12 @@ const HomePage = ({ posts, lang, word, wordArchive, setPage, setCurrentPost, voi
                 </div>
               </div>
               <div style={{ padding: isMobile ? '28px 24px' : '52px 48px', background: t.card, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <Tag T={t} color="#4FC3F7">Featured Essay</Tag>
                 <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: isMobile ? '22px' : '28px', color: t.charcoal, margin: '18px 0 14px', lineHeight: '1.25' }}>{lang === 'en' ? featured.title : (featured.title_so || featured.title)}</h2>
                 <p style={{ color: t.body, fontSize: '15px', lineHeight: '1.75', marginBottom: '28px' }}>{lang === 'en' ? featured.excerpt : (featured.excerpt_so || featured.excerpt)}</p>
                 <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <span style={{ color: '#4FC3F7', fontSize: '14px', fontWeight: '600' }}>Read essay →</span>
                   <span style={{ color: t.mid, fontSize: '12px' }}>{featured.date}</span>
-                  {(featured.views||0) > 0 && <span style={{ color: t.mid, fontSize: '12px' }}>{fmt(featured.views)} reads</span>}
+                  {(featured.views||0) > 0 && <span style={{ color: t.mid, fontSize: '12px' }}>{fmt(featured.views)} {featured.views === 1 ? 'read' : 'reads'}</span>}
                 </div>
               </div>
             </div>
@@ -470,7 +491,7 @@ const HomePage = ({ posts, lang, word, wordArchive, setPage, setCurrentPost, voi
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 340px', gap: isMobile ? '48px' : '64px', alignItems: 'start' }}>
           <div>
             <AnimatedDiv><div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '36px' }}><div style={{ height: '2px', width: '32px', background: t.gold }} /><span style={{ color: t.mid, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '600' }}>Recent Writing</span></div></AnimatedDiv>
-            {recent.length === 0 && <p style={{ color: t.mid, fontSize: '15px' }}>No posts yet. Coming soon.</p>}
+            {recent.length === 0 && <p style={{ color: t.mid, fontSize: '15px', fontStyle: 'italic' }}>More essays coming soon.</p>}
             {recent.map((post, idx) => (
               <AnimatedDiv key={post.id} delay={idx * 0.08}>
                 <div onClick={() => setCurrentPost(post)} style={{ cursor: 'pointer', paddingBottom: '36px', marginBottom: '36px', borderBottom: `1px solid ${t.border}` }} onMouseEnter={e => { const h = e.currentTarget.querySelector('.pt'); if(h) h.style.color='#4FC3F7'; }} onMouseLeave={e => { const h = e.currentTarget.querySelector('.pt'); if(h) h.style.color=t.charcoal; }}>
@@ -478,7 +499,7 @@ const HomePage = ({ posts, lang, word, wordArchive, setPage, setCurrentPost, voi
                   <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap' }}>
                     <span style={{ color: t.mid, fontSize: '12px' }}>{post.date}</span>
                     <span style={{ color: t.mid, fontSize: '12px' }}>{getRT(post.content)}</span>
-                    {(post.views||0) > 0 && <span style={{ color: t.mid, fontSize: '12px' }}>{fmt(post.views)} reads</span>}
+                    {(post.views||0) > 0 && <span style={{ color: t.mid, fontSize: '12px' }}>{fmt(post.views)} {post.views === 1 ? 'read' : 'reads'}</span>}
                   </div>
                   <h3 className="pt" style={{ fontFamily: "'Playfair Display',serif", fontSize: isMobile ? '22px' : '26px', color: t.charcoal, marginBottom: '12px', lineHeight: '1.3', transition: 'color 0.2s', letterSpacing: '-0.3px' }}>{lang === 'en' ? post.title : (post.title_so || post.title)}</h3>
                   <p style={{ color: t.body, fontSize: '15px', lineHeight: '1.7', marginBottom: '16px' }}>{lang === 'en' ? post.excerpt : (post.excerpt_so || post.excerpt)}</p>
@@ -526,7 +547,7 @@ const HomePage = ({ posts, lang, word, wordArchive, setPage, setCurrentPost, voi
                 </div>
               </AnimatedDiv>
             )}
-            <AnimatedDiv delay={0.15}><Newsletter T={t} compact /></AnimatedDiv>
+
           </div>
         </div>
       </div>
@@ -560,7 +581,7 @@ const BlogPage = ({ posts, lang, setPage, setCurrentPost, T }) => {
                 <span style={{ color: t.mid, fontSize: '13px' }}>{post.date}</span>
                 <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: t.border }} />
                 <span style={{ color: t.mid, fontSize: '13px' }}>{getRT(post.content)}</span>
-                {(post.views||0)>0 && <><div style={{ width: '3px', height: '3px', borderRadius: '50%', background: t.border }} /><span style={{ color: t.mid, fontSize: '13px' }}>{fmt(post.views)} reads</span></>}
+                {(post.views||0)>0 && <><div style={{ width: '3px', height: '3px', borderRadius: '50%', background: t.border }} /><span style={{ color: t.mid, fontSize: '13px' }}>{fmt(post.views)} {post.views === 1 ? 'read' : 'reads'}</span></>}
                 {post.featured && <Tag T={t} color="#4FC3F7">Featured</Tag>}
                 {post.category && <Tag T={t}>{post.category}</Tag>}
               </div>
@@ -961,7 +982,7 @@ const PostPage = ({ post, lang, setPage, onCommentSubmit, user, savedPostIds, on
           <span style={{ color: t.mid, fontSize: '13px' }}>{post.date}</span>
           <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: t.border }} />
           <span style={{ color: t.mid, fontSize: '13px' }}>{getRT(postBody)}</span>
-          {(post.views || 0) > 0 && <><div style={{ width: '3px', height: '3px', borderRadius: '50%', background: t.border }} /><span style={{ color: t.mid, fontSize: '13px' }}>{fmt(post.views)} reads</span></>}
+          {(post.views || 0) > 0 && <><div style={{ width: '3px', height: '3px', borderRadius: '50%', background: t.border }} /><span style={{ color: t.mid, fontSize: '13px' }}>{fmt(post.views)} {post.views === 1 ? 'read' : 'reads'}</span></>}
           {post.category && <Tag T={t}>{post.category}</Tag>}
         </div>
 
@@ -1002,7 +1023,7 @@ const PostPage = ({ post, lang, setPage, onCommentSubmit, user, savedPostIds, on
             {!user && (
               <div style={{ background: t.lightBlue, borderRadius: '8px', padding: '12px 16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                 <span style={{ color: t.blueDark, fontSize: '13px' }}>Sign in to comment with your name.</span>
-                <button onClick={onShowAuth} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '6px 14px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>Sign In</button>
+                <button onClick={onShowAuth} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '6px 14px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>Reader Login</button>
               </div>
             )}
             {submitted ? (
@@ -1160,7 +1181,7 @@ const AuthModal = ({ onClose, onSuccess, T }) => {
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <StarLogo size={40} />
           <h2 style={{ fontFamily: 'Playfair Display', fontSize: '22px', color: t.charcoal, marginTop: '12px', marginBottom: '4px', letterSpacing: '-0.3px' }}>
-            {mode === 'signin' ? 'Welcome back' : 'Join Hiigsiga 2040'}
+            {mode === 'signin' ? 'Welcome back' : 'Create Reader Account'}
           </h2>
           <p style={{ color: t.mid, fontSize: '13px' }}>
             {mode === 'signin' ? 'Sign in to save posts and join the conversation.' : 'Create an account to save posts and share your voice.'}
@@ -2450,7 +2471,7 @@ export default function App() {
     <>
       <GlobalStyles dark={dark} />
       <MetaTags page={page} post={page === 'post' ? activePost : null} siteTitle={siteTitle} />
-      <div style={{ minHeight: '100vh', background: T.bg, fontFamily: "'DM Sans',sans-serif" }}>
+      <div style={{ minHeight: '100vh', background: T.bg, fontFamily: "'DM Sans',sans-serif", overflowX: 'hidden' }}>
         {announcement && announcement.active && (
           <AnnouncementBanner message={announcement.message} color={announcement.color} />
         )}
@@ -2476,7 +2497,7 @@ export default function App() {
                   ? <ProfilePage user={user} profile={userProfile} savedPosts={savedPostIds} posts={posts} onUpdateProfile={handleUpdateProfile} onUnsave={handleSavePost} T={T} />
                   : <div style={{ paddingTop: '140px', textAlign: 'center', minHeight: '60vh' }}>
                       <p style={{ color: T.mid, fontSize: '15px', marginBottom: '20px' }}>Sign in to view your profile.</p>
-                      <button onClick={() => setShowAuth(true)} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '10px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Sign In</button>
+                      <button onClick={() => setShowAuth(true)} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '10px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Reader Login</button>
                     </div>
               )}
               {page === 'post' && (
@@ -2500,7 +2521,7 @@ export default function App() {
         <Footer setPage={nav} T={T} siteTitle={siteTitle} />
         <BackToTop />
         {showAuth && <AuthModal onClose={() => setShowAuth(false)} onSuccess={handleAuthSuccess} T={T} />}
-        <div onClick={() => { setPage('admin'); window.scrollTo(0,0); }} style={{ position: 'fixed', bottom: '20px', right: '20px', background: '#040C16', color: '#4FC3F7', border: '1px solid #1A2D44', padding: '8px 14px', borderRadius: '30px', fontSize: '11px', fontWeight: '700', cursor: 'pointer', zIndex: 50, letterSpacing: '1px', userSelect: 'none' }}>⚙ ADMIN</div>
+        {adminLoggedIn && <div onClick={() => { setPage('admin'); window.scrollTo(0,0); }} style={{ position: 'fixed', bottom: '20px', right: '20px', background: '#040C16', color: '#4FC3F7', border: '1px solid #1A2D44', padding: '8px 14px', borderRadius: '30px', fontSize: '11px', fontWeight: '700', cursor: 'pointer', zIndex: 50, letterSpacing: '1px', userSelect: 'none' }}>⚙ ADMIN</div>}
       </div>
     </>
   );
