@@ -76,8 +76,8 @@ const GlobalStyles = ({ dark }) => {
     [contenteditable] ul,[contenteditable] ol { padding-left: 20px; margin: 6px 0; }
     [contenteditable] img { max-width: 100%; border-radius: 8px; margin: 8px 0;
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
-    .skip-link { position: absolute; top: -40px; left: 0; background: #4FC3F7; color: #0A0F1A; padding: 8px 16px; font-size: 14px; font-weight: 700; z-index: 9999; transition: top 0.2s; border-radius: 0 0 8px 0; }
-    .skip-link:focus { top: 0; } }
+    .skip-link { position: fixed; top: -100px; left: 12px; background: #4FC3F7; color: #0A0F1A; padding: 8px 16px; font-size: 13px; font-weight: 700; z-index: 10000; border-radius: 0 0 8px 8px; text-decoration: none; transition: top 0.15s; }
+    .skip-link:focus { top: 0; outline: 2px solid #0A0F1A; } }
   `;
   return <style>{css}</style>;
 };
@@ -89,7 +89,7 @@ const getT = (dark) => ({
   charcoal: dark ? '#F1F5F9' : '#0F172A', body: dark ? '#CBD5E1' : '#1F2937',
   mid: dark ? '#64748B' : '#6B7280', blue: '#4FC3F7',
   blueDark: dark ? '#7DD3F8' : '#0284C7', gold: '#D97706',
-  navBg: dark ? 'rgba(8,17,30,0.95)' : 'rgba(250,250,248,0.95)',
+  navBg: dark ? 'rgba(8,17,30,0.97)' : 'rgba(248,250,252,0.98)',
   footBg: dark ? '#040C16' : '#0A0F1A', inputBg: dark ? '#08111E' : '#FFFFFF',
   lightBlue: dark ? '#0C2D48' : '#EFF9FF', dark,
 });
@@ -287,19 +287,19 @@ const Nav = ({ page, setPage, lang, setLang, dark, setDark, T, siteTitle, user, 
   const onHero = page === 'home' && !scrolled;
   return (
     <>
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: onHero ? 'transparent' : scrolled ? t.navBg : t.bg, borderBottom: onHero ? '1px solid transparent' : `1px solid ${t.border}`, backdropFilter: !onHero && scrolled ? 'blur(14px)' : 'none', WebkitBackdropFilter: !onHero && scrolled ? 'blur(14px)' : 'none', transition: 'all 0.3s', padding: '0 24px' }}>
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: onHero ? 'transparent' : t.navBg, borderBottom: onHero ? '1px solid transparent' : `1px solid ${t.border}`, backdropFilter: onHero ? 'none' : 'blur(16px)', WebkitBackdropFilter: onHero ? 'none' : 'blur(16px)', backdropFilter: !onHero && scrolled ? 'blur(14px)' : 'none', WebkitBackdropFilter: !onHero && scrolled ? 'blur(14px)' : 'none', transition: 'all 0.3s', padding: '0 24px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
           <div onClick={() => go('home')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '11px', flexShrink: 0, minWidth: 0 }}>
             <StarLogo size={36} />
             <div>
-              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: '17px', color: onHero ? '#F8FAFC' : t.charcoal, fontWeight: '600', lineHeight: '1.1', transition: 'color 0.3s' }}>{siteTitle || 'Hiigsiga'} <span style={{ color: '#4FC3F7' }}>2040</span></div>
+              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: '17px', color: onHero ? '#F8FAFC' : t.charcoal, fontWeight: '600', lineHeight: '1.1', transition: 'color 0.3s' }}>{siteTitle || 'Hiigsiga'}<span style={{ color: '#4FC3F7' }}> 2040</span></div>
               <div style={{ fontSize: '8px', letterSpacing: '2.5px', color: '#4FC3F7', textTransform: 'uppercase', fontWeight: '700' }}>Build. Unite. Lead.</div>
             </div>
           </div>
           {!isMobile && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'nowrap' }}>
               {links.map(l => (
-                <span key={l.key} onClick={() => go(l.key)} style={{ color: page === l.key ? '#4FC3F7' : onHero ? '#CBD5E1' : t.charcoal, fontSize: '13px', fontWeight: page === l.key ? '700' : '400', cursor: 'pointer', transition: 'color 0.2s', position: 'relative' }}
+                <span key={l.key} onClick={() => go(l.key)} style={{ color: page === l.key ? '#4FC3F7' : onHero ? '#CBD5E1' : t.dark ? '#E2E8F0' : '#1E293B', fontSize: '13px', fontWeight: page === l.key ? '700' : '500', cursor: 'pointer', transition: 'color 0.2s', position: 'relative' }}
                   onMouseEnter={e => { if (page !== l.key) e.currentTarget.style.color = '#4FC3F7'; }}
                   onMouseLeave={e => { if (page !== l.key) e.currentTarget.style.color = onHero ? '#CBD5E1' : t.charcoal; }}
                 >
@@ -322,7 +322,7 @@ const Nav = ({ page, setPage, lang, setLang, dark, setDark, T, siteTitle, user, 
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <button onClick={() => setDark(!dark)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>{dark ? '☀' : '☾'}</button>
               <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '5px', width: '24px', padding: '4px' }}>
-                {[0,1,2].map(i => <div key={i} style={{ height: '2px', background: onHero ? '#F8FAFC' : t.charcoal, borderRadius: '1px', width: i===1&&menuOpen?'12px':'22px', transition: 'all 0.2s' }} />)}
+                {[0,1,2].map(i => <div key={i} style={{ height: '2px', background: onHero ? '#F8FAFC' : t.dark ? '#E2E8F0' : '#1E293B', borderRadius: '1px', width: i===1&&menuOpen?'12px':'22px', transition: 'all 0.2s' }} />)}
               </button>
             </div>
           )}
@@ -367,7 +367,7 @@ const Footer = ({ setPage, T, siteTitle }) => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '11px', marginBottom: '20px' }}>
               <StarLogo size={32} />
               <div>
-                <div style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: '#F8FAFC', lineHeight: '1.1' }}>{siteTitle || 'Hiigsiga'} <span style={{ color: '#4FC3F7' }}>2040</span></div>
+                <div style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: '#F8FAFC', lineHeight: '1.1' }}>{siteTitle || 'Hiigsiga'}<span style={{ color: '#4FC3F7' }}> 2040</span></div>
                 <div style={{ fontSize: '8px', letterSpacing: '2.5px', color: '#4FC3F7', textTransform: 'uppercase', fontWeight: '700' }}>Build. Unite. Lead.</div>
               </div>
             </div>
@@ -613,18 +613,6 @@ const VisionPage = ({ lang, timeline, T }) => {
           </div>
         </div>
 
-        {/* Table of Contents */}
-        <div style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px 24px', marginBottom: '40px' }}>
-          <div style={{ color: t.mid, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '700', marginBottom: '12px' }}>In this document</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {[lang === 'en' ? 'On Technology & Governance' : 'Teknolojiyada', lang === 'en' ? 'On the Diaspora' : 'Diaspora-da', lang === 'en' ? 'On Unity' : 'Midnimada', lang === 'en' ? 'The Roadmap to 2040' : 'Qorshaha 2040'].map((label, i) => (
-              <a key={i} href={"#vis" + i} style={{ color: '#4FC3F7', fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', padding: '2px 0', transition: 'opacity 0.2s' }} onMouseEnter={e => e.currentTarget.style.opacity = '0.7'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-                <span style={{ color: t.mid, fontSize: '11px', fontWeight: '700', minWidth: '20px' }}>0{i + 1}</span>
-                {label}
-              </a>
-            ))}
-          </div>
-        </div>
 
         {[
           { title: lang === 'en' ? 'On Technology & Governance' : 'Teknolojiyada & Xukuumadda', body: lang === 'en' ? "Somalia\'s path forward runs through digital infrastructure. A government that invests in cybersecurity, digital identity, and transparent e-governance will be a government its people can actually trust." : "Jidka Soomaaliya wuxuu maraa kaabayaasha dijital." },
@@ -683,11 +671,14 @@ const StoryPage = ({ lang, T }) => {
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: isMobile ? '44px 20px' : '68px 24px' }}>
         <AnimatedDiv style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1.6fr', gap: isMobile ? '28px' : '48px', alignItems: 'start', marginBottom: '64px', paddingBottom: '64px', borderBottom: `1px solid ${t.border}` }}>
           <div>
-            <div style={{ width: '100%', paddingBottom: '100%', borderRadius: '16px', background: `linear-gradient(135deg,${t.soft},${t.lightBlue})`, position: 'relative', border: `1px solid ${t.border}` }}>
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ fontSize: '48px' }}>🇸🇴</div>
-                <span style={{ color: t.mid, fontSize: '12px' }}>Photo coming soon</span>
-              </div>
+            <div style={{ width: '100%', paddingBottom: '100%', borderRadius: '16px', overflow: 'hidden', position: 'relative', border: `1px solid ${t.border}`, background: t.soft }}>
+              <img
+                src="https://uesuhjkerdhveyrkcxcs.supabase.co/storage/v1/object/public/somalia2040-media/muzz-headshot.png"
+                alt="Mohamud Mohamed"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+                onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
+              />
+              <div style={{ position: 'absolute', inset: 0, display: 'none', alignItems: 'center', justifyContent: 'center', fontSize: '48px' }}>🇸🇴</div>
             </div>
             <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {[['Based in','Columbus, Ohio'],['Field','Cybersecurity & IT'],['Education','MS Cybersecurity, WGU'],['Hiigsiga','Hiigsiga 2040']].map(item => (
