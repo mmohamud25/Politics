@@ -15,6 +15,31 @@ import {
 } from "./supabase.js";
 
 /* ─── GLOBAL STYLES ────────────────────────────────── */
+const MetaTags = ({ page, post, siteTitle }) => {
+  useEffect(() => {
+    const t = post
+      ? `${post.title} · ${siteTitle} 2040`
+      : { vision: `Vision · ${siteTitle} 2040`, blog: `Blog · ${siteTitle} 2040`, story: `My Story · ${siteTitle} 2040`, connect: `Let's Connect · ${siteTitle} 2040`, reading: `Reading List · ${siteTitle} 2040`, about: `About · ${siteTitle} 2040` }[page] || `${siteTitle} 2040 · Build. Unite. Lead.`;
+    const d = post
+      ? (post.excerpt || `An essay on ${siteTitle} 2040.`)
+      : `${siteTitle} 2040 — Build. Unite. Lead. Honest thinking about Somalia's future.`;
+    const img = post?.thumbnail_url || 'https://politics.mmohamud.me/og.png';
+    const url = `https://politics.mmohamud.me${page && page !== 'home' ? '/' + page : ''}`;
+    document.title = t;
+    const s = (name, val, prop) => {
+      const a = prop ? 'property' : 'name';
+      let el = document.querySelector(`meta[${a}="${name}"]`);
+      if (!el) { el = document.createElement('meta'); el.setAttribute(a, name); document.head.appendChild(el); }
+      el.setAttribute('content', val);
+    };
+    s('description', d); s('og:title', t, 1); s('og:description', d, 1);
+    s('og:type', post ? 'article' : 'website', 1); s('og:url', url, 1); s('og:image', img, 1);
+    s('og:site_name', `${siteTitle} 2040`, 1); s('twitter:card', 'summary_large_image');
+    s('twitter:title', t); s('twitter:description', d); s('twitter:image', img);
+  }, [page, post, siteTitle]);
+  return null;
+};
+
 const GlobalStyles = ({ dark }) => {
   const css = `
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -44,7 +69,10 @@ const GlobalStyles = ({ dark }) => {
     [contenteditable] h1,[contenteditable] h2,[contenteditable] h3 { font-family: 'Playfair Display'; margin: 8px 0; }
     [contenteditable] blockquote { border-left: 3px solid #4FC3F7; padding-left: 12px; margin: 8px 0; color: #6B7280; font-style: italic; }
     [contenteditable] ul,[contenteditable] ol { padding-left: 20px; margin: 6px 0; }
-    [contenteditable] img { max-width: 100%; border-radius: 8px; margin: 8px 0; }
+    [contenteditable] img { max-width: 100%; border-radius: 8px; margin: 8px 0;
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+    .skip-link { position: absolute; top: -40px; left: 0; background: #4FC3F7; color: #0A0F1A; padding: 8px 16px; font-size: 14px; font-weight: 700; z-index: 9999; transition: top 0.2s; border-radius: 0 0 8px 0; }
+    .skip-link:focus { top: 0; } }
   `;
   return <style>{css}</style>;
 };
@@ -84,7 +112,7 @@ const useInView = (ref) => {
 const AnimatedDiv = ({ children, style = {}, delay = 0 }) => {
   const ref = useRef(null);
   const v = useInView(ref);
-  return <div ref={ref} style={{ opacity: v ? 1 : 0, transform: v ? 'none' : 'translateY(20px)', transition: `opacity 0.6s ease ${delay}s, transform 0.6s ease ${delay}s`, ...style }}>{children}</div>;
+  return <div ref={ref} style={{ opacity: v ? 1 : 0, transform: v ? 'none' : 'translateY(14px)', transition: `opacity 0.4s ease ${delay}s, transform 0.4s ease ${delay}s`, ...style }}>{children}</div>;
 };
 
 const fmt = (n) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : String(n || 0);
@@ -122,15 +150,33 @@ const AnnouncementBanner = ({ announcement, onClose }) => {
 };
 
 const ShareBtns = ({ title, T }) => {
-  const t = T || getT(false); const [copied, setCopied] = useState(false);
-  const url = typeof window !== 'undefined' ? window.location.href : '';
-  const bs = { display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: '500', cursor: 'pointer', border: `1px solid ${t.border}`, background: t.soft, color: t.charcoal, transition: 'all 0.2s' };
+  const t = T || getT(false);
+  const [copied, setCopied] = useState(false);
+  const url = typeof window !== 'undefined' ? window.location.href : 'https://politics.mmohamud.me';
+  const encodedUrl = encodeURIComponent(url);
+  const encodedTitle = encodeURIComponent(title || 'Somalia 2040');
+
+  const copy = () => { navigator.clipboard?.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+
+  const btns = [
+    { label: copied ? '✓ Copied' : '🔗 Copy link', action: copy, color: copied ? '#10B981' : t.mid },
+    { label: '𝕏 Share', href: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`, color: '#000' },
+    { label: '💬 WhatsApp', href: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`, color: '#25D366' },
+  ];
+
   return (
-    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-      <span style={{ fontSize: '11px', color: t.mid, letterSpacing: '1.5px', textTransform: 'uppercase', fontWeight: '600' }}>Share</span>
-      <button style={bs} onClick={() => window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(title) + '&url=' + encodeURIComponent(url), '_blank')}>Twitter</button>
-      <button style={bs} onClick={() => window.open('https://wa.me/?text=' + encodeURIComponent(title + ' ' + url), '_blank')}>WhatsApp</button>
-      <button style={{ ...bs, background: copied ? '#D1FAE5' : t.soft, color: copied ? '#065F46' : t.charcoal }} onClick={() => { navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); }}>{copied ? 'Copied!' : 'Copy link'}</button>
+    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', margin: '20px 0' }}>
+      {btns.map(b => b.href ? (
+        <a key={b.label} href={b.href} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '8px', border: `1px solid ${t.border}`, fontSize: '13px', fontWeight: '500', color: b.color, textDecoration: 'none', background: t.soft, transition: 'all 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = b.color; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; }}
+        >{b.label}</a>
+      ) : (
+        <button key={b.label} onClick={b.action} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 14px', borderRadius: '8px', border: `1px solid ${t.border}`, fontSize: '13px', fontWeight: '500', color: b.color, background: t.soft, cursor: 'pointer', transition: 'all 0.15s' }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = '#4FC3F7'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; }}
+        >{b.label}</button>
+      ))}
     </div>
   );
 };
@@ -159,6 +205,7 @@ const Newsletter = ({ T, compact }) => {
         <div style={{ display: 'flex', gap: '10px', maxWidth: '400px', margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center' }}>
           <input value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} placeholder="your@email.com" type="email" style={{ flex: 1, padding: '11px 14px', border: '1px solid #1A2D44', borderRadius: '6px', fontSize: '14px', background: '#08111E', color: '#F1F5F9', outline: 'none', minWidth: '180px' }} />
           <button onClick={submit} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', padding: '11px 22px', borderRadius: '6px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>{status === 'loading' ? 'Joining...' : 'Subscribe'}</button>
+          <p style={{ color: t.mid, fontSize: '11px', marginTop: '10px', lineHeight: '1.5' }}>No spam. Occasional essays only. Unsubscribe anytime.</p>
         </div>
       )}
     </div>
@@ -227,8 +274,8 @@ const Nav = ({ page, setPage, lang, setLang, dark, setDark, T, siteTitle, user, 
   const links = [
     { label: lang === 'en' ? 'Vision' : 'Aragti', key: 'vision' },
     { label: 'Blog', key: 'blog' },
+    { label: lang === 'en' ? 'About' : 'Kuhusus', key: 'about' },
     { label: lang === 'en' ? 'My Story' : 'Taariikhda', key: 'story' },
-    { label: lang === 'en' ? 'Reading List' : 'Buugaagta', key: 'reading' },
     { label: lang === 'en' ? "Let\'s Connect" : 'Xiriirka', key: 'connect' },
   ];
   const go = (k) => { setPage(k); setMenuOpen(false); window.scrollTo(0, 0); };
@@ -252,10 +299,12 @@ const Nav = ({ page, setPage, lang, setLang, dark, setDark, T, siteTitle, user, 
                   onMouseLeave={e => { if (page !== l.key) e.currentTarget.style.color = onHero ? '#CBD5E1' : t.charcoal; }}
                 >
                   {l.label}
-                  {page === l.key && <div style={{ position: 'absolute', bottom: '-4px', left: 0, right: 0, height: '2px', background: '#4FC3F7', borderRadius: '1px' }} />}
+                  {page === l.key && <div style={{ position: 'absolute', bottom: '-4px', left: 0, right: 0, height: '2px', background: '#4FC3F7', borderRadius: '1px', boxShadow: '0 0 8px rgba(79,195,247,0.5)' }} />}
                 </span>
               ))}
-              <button onClick={() => setLang(lang === 'en' ? 'so' : 'en')} style={{ background: 'rgba(79,195,247,0.1)', border: '1px solid rgba(79,195,247,0.2)', borderRadius: '6px', padding: '5px 10px', fontSize: '11px', cursor: 'pointer', color: '#4FC3F7', fontWeight: '700', letterSpacing: '1px' }}>{lang === 'en' ? 'SO' : 'EN'}</button>
+              <button onClick={() => setLang(lang === 'en' ? 'so' : 'en')} title={lang === 'en' ? 'Switch to Somali' : 'Switch to English'} style={{ background: 'rgba(79,195,247,0.1)', border: '1px solid rgba(79,195,247,0.2)', borderRadius: '6px', padding: '5px 12px', fontSize: '11px', cursor: 'pointer', color: '#4FC3F7', fontWeight: '700', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                {lang === 'en' ? <><span>🇸🇴</span><span>SO</span></> : <><span>🇺🇸</span><span>EN</span></>}
+              </button>
               <button onClick={() => setDark(!dark)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1 }}>{dark ? '☀' : '☾'}</button>
               {user ? (
                 <UserMenu user={user} profile={userProfile} onSignOut={onSignOut} onViewProfile={() => go('profile')} T={T} />
@@ -278,13 +327,30 @@ const Nav = ({ page, setPage, lang, setLang, dark, setDark, T, siteTitle, user, 
         <div className="slide-down" style={{ position: 'fixed', top: '64px', left: 0, right: 0, bottom: 0, zIndex: 99, background: t.bg, borderTop: `1px solid ${t.border}`, padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: '2px', overflowY: 'auto' }}>
           {links.map(l => (<div key={l.key} onClick={() => go(l.key)} style={{ padding: '18px 0', fontSize: '24px', fontFamily: 'Playfair Display', color: page === l.key ? '#4FC3F7' : t.charcoal, cursor: 'pointer', borderBottom: `1px solid ${t.border}` }}>{l.label}</div>))}
           <div style={{ marginTop: '28px' }}>
-            <button onClick={() => { setLang(lang === 'en' ? 'so' : 'en'); setMenuOpen(false); }} style={{ background: 'rgba(79,195,247,0.1)', border: '1px solid rgba(79,195,247,0.2)', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', cursor: 'pointer', color: '#4FC3F7', fontWeight: '600' }}>{lang === 'en' ? 'Somali' : 'English'}</button>
+            <button onClick={() => { setLang(lang === 'en' ? 'so' : 'en'); setMenuOpen(false); }} style={{ background: 'rgba(79,195,247,0.1)', border: '1px solid rgba(79,195,247,0.2)', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', cursor: 'pointer', color: '#4FC3F7', fontWeight: '600' }}>{lang === 'en' ? '🇸🇴 Somali' : '🇺🇸 English'}</button>
           </div>
         </div>
       )}
     </>
   );
 };
+
+const FooterNewsletter = () => {
+  const [email, setEmail] = useState('');
+  const [done, setDone] = useState(false);
+  const submit = async () => {
+    if (!email || !email.includes('@')) return;
+    try { await fetch('https://formspree.io/f/xeepavdd', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ email, _subject: 'Somalia 2040 Newsletter' }) }); setDone(true); } catch {}
+  };
+  if (done) return <p style={{ color: '#34D399', fontSize: '13px', fontWeight: '500' }}>✓ You are in.</p>;
+  return (
+    <div style={{ display: 'flex', gap: '6px' }}>
+      <input value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} placeholder="your@email.com" style={{ flex: 1, padding: '8px 10px', border: '1px solid #1A2D44', borderRadius: '6px', fontSize: '12px', background: '#08111E', color: '#F1F5F9', outline: 'none', minWidth: 0 }} />
+      <button onClick={submit} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '8px 12px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', whiteSpace: 'nowrap' }}>Join</button>
+    </div>
+  );
+};
+
 
 const Footer = ({ setPage, T, siteTitle }) => {
   const t = T;
@@ -305,27 +371,32 @@ const Footer = ({ setPage, T, siteTitle }) => {
           <div style={{ display: 'flex', gap: '48px', flexWrap: 'wrap' }}>
             <div>
               <div style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700', marginBottom: '16px' }}>Pages</div>
-              {[['Vision','vision'],['Blog','blog'],['About','about'],['My Story','story']].map(([label,key]) => (
+              {[['Vision','vision'],['Blog','blog'],['About','about'],['My Story','story'],['Reading List','reading'],["Let's Connect",'connect']].map(([label,key]) => (
                 <div key={key} onClick={() => setPage(key)} style={{ color: '#475569', fontSize: '14px', cursor: 'pointer', marginBottom: '10px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#F8FAFC'} onMouseLeave={e => e.target.style.color='#475569'}>{label}</div>
               ))}
             </div>
-            <div>
-              <div style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700', marginBottom: '16px' }}>Community</div>
-              {[['Reading List','reading'],["Let\'s Connect",'connect']].map(([label,key]) => (
-                <div key={key} onClick={() => setPage(key)} style={{ color: '#475569', fontSize: '14px', cursor: 'pointer', marginBottom: '10px', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#F8FAFC'} onMouseLeave={e => e.target.style.color='#475569'}>{label}</div>
-              ))}
+            <div style={{ maxWidth: '220px' }}>
+              <div style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700', marginBottom: '16px' }}>Newsletter</div>
+              <p style={{ color: '#475569', fontSize: '13px', lineHeight: '1.7', marginBottom: '14px' }}>Essays and updates on Somalia to your inbox.</p>
+              <FooterNewsletter />
             </div>
           </div>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '28px' }}>
+          {[['LinkedIn','https://linkedin.com/in/mohamudmohamed'],['Twitter / X','https://twitter.com/mmohamud25'],['Email','mailto:mohamedmohammud@gmail.com']].map(([name,href]) => (
+            <a key={name} href={href} target='_blank' rel='noreferrer' style={{ padding: '7px 14px', borderRadius: '8px', background: '#0F1E30', border: '1px solid #1A2D44', color: '#475569', fontSize: '12px', textDecoration: 'none', fontWeight: '500', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor='#4FC3F7'; e.currentTarget.style.color='#4FC3F7'; }} onMouseLeave={e => { e.currentTarget.style.borderColor='#1A2D44'; e.currentTarget.style.color='#475569'; }}>{name}</a>
+          ))}
         </div>
         <div style={{ height: '1px', background: '#0F1E30', margin: '0 0 28px' }} />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <p style={{ color: '#334155', fontSize: '13px' }}>© 2026 politics.mmohamud.me · Somalia 2040</p>
-          <a href="https://mmohamud.me" style={{ color: '#334155', fontSize: '13px', textDecoration: 'none' }} onMouseEnter={e => e.target.style.color='#4FC3F7'} onMouseLeave={e => e.target.style.color='#334155'}>mmohamud.me</a>
+          <a href="https://mmohamud.me" style={{ color: '#334155', fontSize: '13px', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#4FC3F7'} onMouseLeave={e => e.target.style.color='#334155'}>mmohamud.me</a>
         </div>
       </div>
     </footer>
   );
 };
+
 
 const HomePage = ({ posts, lang, word, setPage, setCurrentPost, voices, dark, T }) => {
   const t = T;
@@ -412,6 +483,7 @@ const HomePage = ({ posts, lang, word, setPage, setCurrentPost, voices, dark, T 
                   <div style={{ fontFamily: 'Playfair Display', fontSize: '30px', color: '#F8FAFC', marginBottom: '6px', fontStyle: 'italic' }}>{word.somali}</div>
                   <div style={{ color: '#D97706', fontSize: '14px', fontWeight: '600', marginBottom: '14px' }}>{word.english}</div>
                   <p style={{ color: '#475569', fontSize: '13px', lineHeight: '1.7', fontStyle: 'italic' }}>{word.sentence}</p>
+                  {word.date && <div style={{ color: '#334155', fontSize: '11px', marginTop: '12px', letterSpacing: '0.5px' }}>Updated {word.date}</div>}
                 </div>
               </AnimatedDiv>
             )}
@@ -497,13 +569,39 @@ const VisionPage = ({ lang, timeline, T }) => {
         </div>
       </div>
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: isMobile ? '44px 20px' : '68px 24px' }}>
+        {/* Table of Contents */}
+        <div style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px 24px', marginBottom: '40px' }}>
+          <div style={{ color: t.mid, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '700', marginBottom: '12px' }}>In this document</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {[lang === 'en' ? 'On Technology & Governance' : 'Teknolojiyada', lang === 'en' ? 'On the Diaspora' : 'Diaspora-da', lang === 'en' ? 'On Unity' : 'Midnimada', lang === 'en' ? 'The Roadmap to 2040' : 'Qorshaha 2040'].map((section, i) => (
+              <a key={i} href={"#vision-" + i} style={{ color: '#4FC3F7', fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }} onMouseEnter={e => e.currentTarget.style.opacity='0.7'} onMouseLeave={e => e.currentTarget.style.opacity='1'}>
+                <span style={{ color: t.mid, fontSize: '12px', minWidth: '24px' }}>0{i + 1}</span>
+                {section}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Table of Contents */}
+        <div style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px 24px', marginBottom: '40px' }}>
+          <div style={{ color: t.mid, fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '700', marginBottom: '12px' }}>In this document</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {[lang === 'en' ? 'On Technology & Governance' : 'Teknolojiyada', lang === 'en' ? 'On the Diaspora' : 'Diaspora-da', lang === 'en' ? 'On Unity' : 'Midnimada', lang === 'en' ? 'The Roadmap to 2040' : 'Qorshaha 2040'].map((label, i) => (
+              <a key={i} href={"#vis" + i} style={{ color: '#4FC3F7', fontSize: '14px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', padding: '2px 0', transition: 'opacity 0.2s' }} onMouseEnter={e => e.currentTarget.style.opacity = '0.7'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+                <span style={{ color: t.mid, fontSize: '11px', fontWeight: '700', minWidth: '20px' }}>0{i + 1}</span>
+                {label}
+              </a>
+            ))}
+          </div>
+        </div>
+
         {[
           { title: lang === 'en' ? 'On Technology & Governance' : 'Teknolojiyada & Xukuumadda', body: lang === 'en' ? "Somalia\'s path forward runs through digital infrastructure. A government that invests in cybersecurity, digital identity, and transparent e-governance will be a government its people can actually trust." : "Jidka Soomaaliya wuxuu maraa kaabayaasha dijital." },
           { title: lang === 'en' ? 'On the Diaspora' : 'Diaspora-da', body: lang === 'en' ? "The millions of Somalis living abroad are not a footnote. They are an untapped engine. My vision includes building real channels through which diaspora talent, capital, and experience flow back into Somalia." : "Malaayin Soomaali ah oo dibadda ku nool kuma aha qoraal kooban." },
           { title: lang === 'en' ? 'On Unity' : 'Midnimada', body: lang === 'en' ? "Unity does not come from forcing agreement. It comes from building institutions people trust, systems that are fair, and leadership that listens." : "Midnimadu kuma timaado in dadka lagu kalliftey inay is waafaqaan." },
         ].map((item, i) => (
           <AnimatedDiv key={i} delay={i * 0.1} style={{ marginBottom: '52px', paddingBottom: '52px', borderBottom: `1px solid ${t.border}` }}>
-            <div style={{ display: 'flex', gap: '24px' }}>
+            <div id={`vision-${i}`} style={{ display: 'flex', gap: '24px' }}>
               <div style={{ width: '2px', background: 'linear-gradient(to bottom,#4FC3F7,transparent)', borderRadius: '2px', flexShrink: 0, marginTop: '6px' }} />
               <div>
                 <h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '22px' : '28px', color: t.charcoal, marginBottom: '16px' }}>{item.title}</h2>
@@ -512,7 +610,7 @@ const VisionPage = ({ lang, timeline, T }) => {
             </div>
           </AnimatedDiv>
         ))}
-        <AnimatedDiv><h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '24px' : '32px', color: t.charcoal, marginBottom: '40px' }}>The Roadmap to 2040</h2></AnimatedDiv>
+        <AnimatedDiv><h2 id='vision-3' style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '24px' : '32px', color: t.charcoal, marginBottom: '40px' }}>The Roadmap to 2040</h2></AnimatedDiv>
         {timeline && timeline.map((phase, i) => (
           <AnimatedDiv key={i} delay={i * 0.07}>
             <div style={{ display: 'flex', gap: isMobile ? '16px' : '28px', marginBottom: '36px', alignItems: 'flex-start' }}>
@@ -591,14 +689,25 @@ const StoryPage = ({ lang, T }) => {
         ))}
         <AnimatedDiv>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: '12px', marginBottom: '48px' }}>
-            {[['2','Degrees completed'],['MS','Currently studying'],['14+','Projects built'],['2040','The goal year']].map(item => (
-              <div key={item[0]} style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
-                <div style={{ fontFamily: 'Playfair Display', fontSize: '28px', color: '#4FC3F7', fontWeight: '700', marginBottom: '6px' }}>{item[0]}</div>
-                <div style={{ color: t.mid, fontSize: '12px' }}>{item[1]}</div>
+            {[['2','Degrees completed',null],['MS','Currently studying',null],['14+','Projects built','https://kulangroup.com'],['2040','The goal year',null]].map(([num,label,link]) => (
+              <div key={num} onClick={link ? () => window.open(link,'_blank') : undefined} style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px', textAlign: 'center', cursor: link ? 'pointer' : 'default', transition: 'border-color 0.2s' }} onMouseEnter={e => { if(link) e.currentTarget.style.borderColor='#4FC3F7'; }} onMouseLeave={e => { e.currentTarget.style.borderColor=t.border; }}>
+                <div style={{ fontFamily: 'Playfair Display', fontSize: '28px', color: '#4FC3F7', fontWeight: '700', marginBottom: '6px' }}>{num}</div>
+                <div style={{ color: t.mid, fontSize: '12px' }}>{label}{link && <span style={{ color: '#4FC3F7', marginLeft: '4px' }}>arrow</span>}</div>
               </div>
             ))}
           </div>
         </AnimatedDiv>
+                <div style={{ marginBottom: '48px', paddingBottom: '48px', borderBottom: `1px solid ${t.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+            <div style={{ height: '2px', width: '28px', background: '#4FC3F7' }} />
+            <span style={{ color: t.mid, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '600' }}>Connect</span>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            {[['LinkedIn', 'https://linkedin.com/in/mohamudmohamed'], ['Twitter / X', 'https://twitter.com/mmohamud25'], ['Email', 'mailto:mohamedmohammud@gmail.com'], ['Kulan Group', 'https://kulangroup.com']].map(([name, href]) => (
+              <a key={name} href={href} target="_blank" rel="noreferrer" style={{ padding: '9px 18px', borderRadius: '8px', background: t.soft, border: `1px solid ${t.border}`, color: t.charcoal, fontSize: '13px', textDecoration: 'none', fontWeight: '500', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor='#4FC3F7'; e.currentTarget.style.color='#4FC3F7'; }} onMouseLeave={e => { e.currentTarget.style.borderColor=t.border; e.currentTarget.style.color=t.charcoal; }}>{name}</a>
+            ))}
+          </div>
+        </div>
         <Newsletter T={t} />
       </div>
     </div>
@@ -633,9 +742,13 @@ const ReadingPage = ({ reading, lang, T }) => {
               {reading.filter(r => r.category === cat).map((book, i) => (
                 <AnimatedDiv key={book.id} delay={i * 0.06}>
                   <div style={{ background: t.soft, borderRadius: '12px', padding: '20px 24px', marginBottom: '12px', borderLeft: '3px solid #4FC3F7', transition: 'transform 0.2s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateX(4px)'} onMouseLeave={e => e.currentTarget.style.transform = 'translateX(0)'}>
-                    <div style={{ fontWeight: '600', color: t.charcoal, fontSize: '16px', marginBottom: '3px' }}>{book.title}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '3px' }}>
+                      <div style={{ fontWeight: '600', color: t.charcoal, fontSize: '16px' }}>{book.title}</div>
+                      {book.status && <span style={{ flexShrink: 0, fontSize: '10px', fontWeight: '700', letterSpacing: '0.5px', padding: '3px 8px', borderRadius: '20px', background: book.status === 'Reading' ? 'rgba(79,195,247,0.15)' : book.status === 'Read' ? 'rgba(16,185,129,0.15)' : 'rgba(217,119,6,0.15)', color: book.status === 'Reading' ? '#4FC3F7' : book.status === 'Read' ? '#10B981' : '#D97706' }}>{book.status}</span>}
+                    </div>
                     <div style={{ color: '#4FC3F7', fontSize: '13px', marginBottom: '8px', fontWeight: '500' }}>{book.author}</div>
-                    {book.note && <p style={{ color: t.body, fontSize: '13px', lineHeight: '1.7' }}>{book.note}</p>}
+                    {book.note && <p style={{ color: t.body, fontSize: '13px', lineHeight: '1.7', marginBottom: '10px' }}>{book.note}</p>}
+                    {book.link && <a href={book.link} target="_blank" rel="noreferrer" style={{ color: '#4FC3F7', fontSize: '12px', fontWeight: '500', textDecoration: 'none', opacity: 0.8 }}>View on Goodreads →</a>}
                   </div>
                 </AnimatedDiv>
               ))}
@@ -653,14 +766,14 @@ const ConnectPage = ({ voices, onVoiceSubmit, lang, monthlyQ, T }) => {
   const isMobile = useIsMobile();
   const [form, setForm] = useState({ author: '', location: '', text: '' });
   const [submitted, setSubmitted] = useState(false);
-  const featured = voices.filter(v => v.featured);
-  const others = voices.filter(v => !v.featured);
   const iStyle = { width: '100%', padding: '11px 13px', border: `1px solid ${t.border}`, borderRadius: '8px', fontSize: '14px', background: t.inputBg, color: t.charcoal, outline: 'none', fontFamily: "'DM Sans',sans-serif" };
+
   const submit = async () => {
     if (!form.author || !form.text) return;
     await onVoiceSubmit({ ...form, featured: false, date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) });
     setSubmitted(true);
   };
+
   return (
     <div style={{ paddingTop: '64px' }}>
       <div style={{ background: 'linear-gradient(160deg,#040C16 0%,#0A0F1A 100%)', padding: isMobile ? '48px 20px 40px' : '72px 24px 56px' }}>
@@ -670,62 +783,90 @@ const ConnectPage = ({ voices, onVoiceSubmit, lang, monthlyQ, T }) => {
             <span style={{ color: '#4FC3F7', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700' }}>Community</span>
             <div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} />
           </div>
-          <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '32px' : '48px', color: '#F8FAFC', letterSpacing: '-0.5px', lineHeight: '1.1', marginBottom: '16px' }}>{lang === 'en' ? "Let\'s Connect" : 'Aan Xiriirno'}</h1>
-          <p style={{ color: '#475569', fontSize: '15px', lineHeight: '1.8' }}>{lang === 'en' ? 'This space belongs to every Somali who has something to say.' : 'Meesha waxay u tahay Soomaali kasta oo wax yidhaahda.'}</p>
+          <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '32px' : '48px', color: '#F8FAFC', letterSpacing: '-0.5px', lineHeight: '1.1', marginBottom: '16px' }}>
+            {lang === 'en' ? "Let's Connect" : 'Aan Xiriirno'}
+          </h1>
+          <p style={{ color: '#475569', fontSize: '15px', lineHeight: '1.8' }}>
+            {lang === 'en' ? 'This space belongs to every Somali who has something to say.' : 'Meesha waxay u tahay Soomaali kasta oo wax yidhaahda.'}
+          </p>
         </div>
       </div>
+
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '40px 20px' : '60px 24px' }}>
+
+        {/* Monthly Question */}
         {monthlyQ && (
           <AnimatedDiv>
             <div style={{ background: t.dark ? '#040C16' : '#0A0F1A', border: `1px solid ${t.border}`, borderRadius: '16px', padding: isMobile ? '28px 22px' : '44px', marginBottom: '48px', textAlign: 'center' }}>
               <div style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px', fontWeight: '700' }}>Monthly Question</div>
               <p style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '20px' : '26px', color: '#F8FAFC', lineHeight: '1.5', maxWidth: '600px', margin: '0 auto', fontStyle: 'italic' }}>"{monthlyQ}"</p>
+              <p style={{ color: '#475569', fontSize: '12px', marginTop: '16px', letterSpacing: '0.5px' }}>Updated monthly</p>
             </div>
           </AnimatedDiv>
         )}
-        {featured.length > 0 && (
+
+        {/* Voices grid — uniform 3-column */}
+        {voices.length > 0 && (
           <div style={{ marginBottom: '48px' }}>
-            <AnimatedDiv><div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}><div style={{ height: '2px', width: '24px', background: '#D97706' }} /><span style={{ color: t.mid, fontSize: '10px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: '700' }}>Featured Voices</span></div></AnimatedDiv>
-            {featured.map((v, i) => (
-              <AnimatedDiv key={v.id} delay={i * 0.07}>
-                <div style={{ background: t.soft, borderRadius: '12px', padding: '24px 28px', marginBottom: '14px', borderLeft: '3px solid #D97706' }}>
-                  <p style={{ color: t.charcoal, fontSize: isMobile ? '15px' : '17px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '12px' }}>"{v.text}"</p>
-                  <span style={{ color: t.mid, fontSize: '13px', fontWeight: '500' }}>{v.author}{v.location ? ` · ${v.location}` : ''}</span>
-                </div>
-              </AnimatedDiv>
-            ))}
+            <AnimatedDiv>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                <div style={{ height: '2px', width: '24px', background: '#D97706' }} />
+                <span style={{ color: t.mid, fontSize: '10px', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: '700' }}>Community Voices</span>
+              </div>
+            </AnimatedDiv>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: '16px' }}>
+              {voices.map((v, i) => (
+                <AnimatedDiv key={v.id} delay={i * 0.05}>
+                  <div style={{ background: t.soft, border: `1px solid ${v.featured ? '#D97706' : t.border}`, borderRadius: '14px', padding: '24px', height: '100%', borderTop: `3px solid ${v.featured ? '#D97706' : t.border}`, position: 'relative' }}>
+                    {v.featured && (
+                      <span style={{ position: 'absolute', top: '14px', right: '14px', background: '#D97706', color: '#FFF', fontSize: '9px', fontWeight: '700', letterSpacing: '1px', padding: '2px 8px', borderRadius: '20px', textTransform: 'uppercase' }}>Featured</span>
+                    )}
+                    <p style={{ color: t.charcoal, fontSize: '15px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '16px' }}>"{v.text}"</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg,#4FC3F7,#0284C7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: '#FFF', flexShrink: 0 }}>
+                        {(v.author || 'A').charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div style={{ color: t.charcoal, fontSize: '13px', fontWeight: '600' }}>{v.author}</div>
+                        {v.location && <div style={{ color: t.mid, fontSize: '12px' }}>{v.location}</div>}
+                      </div>
+                    </div>
+                  </div>
+                </AnimatedDiv>
+              ))}
+            </div>
           </div>
         )}
-        {others.length > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '14px', marginBottom: '48px' }}>
-            {others.map((v, i) => (
-              <AnimatedDiv key={v.id} delay={i * 0.05}>
-                <div style={{ background: t.card, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px 22px' }}>
-                  <p style={{ color: t.body, fontSize: '14px', lineHeight: '1.75', marginBottom: '12px', fontStyle: 'italic' }}>"{v.text}"</p>
-                  <span style={{ color: t.mid, fontSize: '12px', fontWeight: '500' }}>{v.author}{v.location ? ` · ${v.location}` : ''}</span>
-                </div>
-              </AnimatedDiv>
-            ))}
-          </div>
-        )}
+
+        {/* Share Your Voice form */}
         <AnimatedDiv>
           <div style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '16px', padding: isMobile ? '28px 22px' : '40px' }}>
             <h2 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '24px' : '30px', color: t.charcoal, marginBottom: '8px' }}>Share Your Voice</h2>
             <p style={{ color: t.mid, fontSize: '14px', marginBottom: '28px', lineHeight: '1.6' }}>Submitted voices are reviewed before going live.</p>
+
             {submitted ? (
-              <div style={{ background: '#ECFDF5', border: '1px solid #6EE7B7', borderRadius: '8px', padding: '16px 20px', color: '#065F46', fontSize: '14px', fontWeight: '500' }}>Thank you for sharing. Your voice has been submitted for review.</div>
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <div style={{ fontSize: '36px', marginBottom: '10px' }}>🎉</div>
+                <div style={{ color: t.charcoal, fontSize: '16px', fontWeight: '600', marginBottom: '8px' }}>Thank you for sharing.</div>
+                <p style={{ color: t.mid, fontSize: '14px', lineHeight: '1.6' }}>Your voice has been submitted and will appear here once reviewed.</p>
+                <button onClick={() => { setSubmitted(false); setForm({ author: '', location: '', text: '' }); }} style={{ marginTop: '16px', background: 'none', border: `1px solid ${t.border}`, borderRadius: '6px', padding: '8px 16px', color: t.mid, fontSize: '13px', cursor: 'pointer' }}>Submit another</button>
+              </div>
             ) : (
               <>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                  <input value={form.author} onChange={e => setForm({...form, author: e.target.value})} placeholder="Your name *" style={iStyle} />
-                  <input value={form.location} onChange={e => setForm({...form, location: e.target.value})} placeholder="Your city / country" style={iStyle} />
+                  <input value={form.author} onChange={e => setForm({...form, author: e.target.value})} placeholder="Your name *" style={iStyle} maxLength={60} />
+                  <input value={form.location} onChange={e => setForm({...form, location: e.target.value})} placeholder="Your city / country" style={iStyle} maxLength={60} />
                 </div>
-                <textarea value={form.text} onChange={e => setForm({...form, text: e.target.value})} placeholder="Your thoughts on Somalia, politics, or the future..." rows={5} style={{ ...iStyle, resize: 'vertical', marginBottom: '16px' }} />
-                <Btn onClick={submit} T={t}>Submit Your Voice</Btn>
+                <div style={{ position: 'relative', marginBottom: '6px' }}>
+                  <textarea value={form.text} onChange={e => setForm({...form, text: e.target.value})} placeholder="Your thoughts on Somalia, politics, or the future..." rows={5} style={{ ...iStyle, resize: 'vertical', width: '100%', paddingBottom: '28px' }} maxLength={500} />
+                  <span style={{ position: 'absolute', bottom: '8px', right: '12px', fontSize: '11px', color: form.text.length > 450 ? '#EF4444' : t.mid }}>{form.text.length}/500</span>
+                </div>
+                <Btn onClick={submit} T={t} disabled={!form.author || !form.text} style={{ marginTop: '10px' }}>Submit Your Voice</Btn>
               </>
             )}
           </div>
         </AnimatedDiv>
+
         <Newsletter T={t} />
       </div>
     </div>
@@ -781,7 +922,7 @@ const PostPage = ({ post, lang, setPage, onCommentSubmit, user, savedPostIds, on
         <ShareBtns title={lang === 'en' ? post.title : (post.title_so || post.title)} T={t} />
         <div style={{ height: '1px', background: t.border, margin: '28px 0' }} />
 
-        {content_body && (
+        {postBody && (
           isHTML(postBody)
             ? <div className="post-content" dangerouslySetInnerHTML={{ __html: postBody }} />
             : postBody.split('\n\n').map((para, i) => <p key={i} style={{ color: t.body, fontSize: isMobile ? '17px' : '18px', lineHeight: '1.95', marginBottom: '1.5rem' }}>{para}</p>)
@@ -1234,6 +1375,170 @@ const ProfilePage = ({ user, profile, savedPosts, posts, onUpdateProfile, onUnsa
           ))}
         </div>
       </div>
+    </div>
+  );
+};
+
+const AdminAnalytics = ({ T }) => {
+  const t = T || getT(false);
+  const isMobile = useIsMobile();
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [days, setDays] = useState(30);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try { const s = await getAnalyticsSummary(days); setSummary(s); }
+      catch (e) { console.error(e); }
+      setLoading(false);
+    };
+    load();
+  }, [days]);
+
+  const maxDaily = summary?.dailyViews?.length > 0
+    ? Math.max(...summary.dailyViews.map(([, v]) => v), 1) : 1;
+
+  return (
+    <div className="fade-in">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <h1 style={{ fontFamily: 'Playfair Display', fontSize: '26px', color: t.charcoal, letterSpacing: '-0.3px' }}>Analytics</h1>
+          <p style={{ color: t.mid, fontSize: '13px', marginTop: '4px' }}>Site performance and visitor insights</p>
+        </div>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {[7, 30, 90].map(d => (
+            <button key={d} onClick={() => setDays(d)} style={{ padding: '7px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', border: `1px solid ${days === d ? '#4FC3F7' : t.border}`, background: days === d ? 'rgba(79,195,247,0.1)' : t.card, color: days === d ? '#4FC3F7' : t.mid, transition: 'all 0.2s' }}>
+              {d}d
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
+          <div style={{ width: '32px', height: '32px', border: '2px solid #E5E7EB', borderTop: '2px solid #4FC3F7', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        </div>
+      ) : !summary ? (
+        <div style={{ textAlign: 'center', padding: '60px', background: t.card, borderRadius: '12px', border: `1px solid ${t.border}` }}>
+          <div style={{ fontSize: '32px', marginBottom: '12px' }}>📊</div>
+          <p style={{ color: t.mid, fontSize: '14px' }}>No analytics data yet. Data will appear as visitors browse the site.</p>
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: '12px', marginBottom: '20px' }}>
+            {[
+              { label: 'Page Views', value: summary.totalViews, color: '#4FC3F7', icon: '👁' },
+              { label: 'Unique Sessions', value: summary.uniqueSessions, color: '#D97706', icon: '👤' },
+              { label: 'Mobile', value: summary.devices?.mobile || 0, color: '#10B981', icon: '📱' },
+              { label: 'Desktop', value: summary.devices?.desktop || 0, color: '#8B5CF6', icon: '💻' },
+            ].map(s => (
+              <div key={s.label} style={{ background: t.card, borderRadius: '12px', padding: '20px', border: `1px solid ${t.border}`, borderTop: `3px solid ${s.color}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <div style={{ fontSize: '28px', fontWeight: '700', color: s.color, fontFamily: 'Playfair Display' }}>{s.value}</div>
+                  <span style={{ fontSize: '18px', opacity: 0.6 }}>{s.icon}</span>
+                </div>
+                <div style={{ color: t.mid, fontSize: '12px' }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.6fr 1fr', gap: '16px', marginBottom: '16px' }}>
+            <div style={{ background: t.card, borderRadius: '12px', padding: '22px', border: `1px solid ${t.border}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+                <div style={{ width: '3px', height: '16px', background: '#4FC3F7', borderRadius: '2px' }} />
+                <h3 style={{ fontFamily: 'Playfair Display', fontSize: '16px', color: t.charcoal }}>Daily Page Views</h3>
+                <span style={{ color: t.mid, fontSize: '12px', marginLeft: 'auto' }}>Last {days} days</span>
+              </div>
+              {summary.dailyViews.length === 0 ? (
+                <p style={{ color: t.mid, fontSize: '13px', textAlign: 'center', padding: '20px' }}>No data yet for this period</p>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '120px' }}>
+                    {summary.dailyViews.map(([date, views]) => (
+                      <div key={date} title={`${date}: ${views} views`} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%' }}>
+                        <div style={{ width: '100%', height: `${Math.max(4, (views / maxDaily) * 100)}%`, background: 'rgba(79,195,247,0.5)', borderRadius: '2px 2px 0 0', transition: 'background 0.2s' }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(79,195,247,0.9)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'rgba(79,195,247,0.5)'}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
+                    <span style={{ color: t.mid, fontSize: '10px' }}>{summary.dailyViews[0]?.[0]}</span>
+                    <span style={{ color: t.mid, fontSize: '10px' }}>{summary.dailyViews[summary.dailyViews.length - 1]?.[0]}</span>
+                  </div>
+                </>
+              )}
+            </div>
+            <div style={{ background: t.card, borderRadius: '12px', padding: '22px', border: `1px solid ${t.border}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+                <div style={{ width: '3px', height: '16px', background: '#D97706', borderRadius: '2px' }} />
+                <h3 style={{ fontFamily: 'Playfair Display', fontSize: '16px', color: t.charcoal }}>Devices</h3>
+              </div>
+              {Object.entries(summary.devices || {}).filter(([, v]) => v > 0).map(([device, count]) => {
+                const total = Object.values(summary.devices || {}).reduce((s, v) => s + v, 0) || 1;
+                const pct = Math.round((count / total) * 100);
+                const colors = { desktop: '#4FC3F7', mobile: '#D97706', tablet: '#10B981' };
+                return (
+                  <div key={device} style={{ marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+                      <span style={{ color: t.charcoal, fontSize: '13px', fontWeight: '500' }}>{device.charAt(0).toUpperCase() + device.slice(1)}</span>
+                      <span style={{ color: colors[device] || '#4FC3F7', fontSize: '13px', fontWeight: '700' }}>{pct}%</span>
+                    </div>
+                    <div style={{ height: '6px', background: t.border, borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, background: colors[device] || '#4FC3F7', borderRadius: '3px' }} />
+                    </div>
+                  </div>
+                );
+              })}
+              {Object.values(summary.devices || {}).every(v => v === 0) && <p style={{ color: t.mid, fontSize: '13px' }}>No device data yet.</p>}
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
+            <div style={{ background: t.card, borderRadius: '12px', padding: '22px', border: `1px solid ${t.border}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
+                <div style={{ width: '3px', height: '16px', background: '#10B981', borderRadius: '2px' }} />
+                <h3 style={{ fontFamily: 'Playfair Display', fontSize: '16px', color: t.charcoal }}>Top Pages</h3>
+              </div>
+              {summary.topPages.length === 0 ? <p style={{ color: t.mid, fontSize: '13px' }}>No page data yet.</p>
+                : summary.topPages.map(([page, views], i) => (
+                  <div key={page} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 0', borderBottom: i < summary.topPages.length - 1 ? `1px solid ${t.border}` : 'none' }}>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: 1, minWidth: 0 }}>
+                      <span style={{ color: t.mid, fontSize: '11px', fontWeight: '700', width: '16px' }}>{i + 1}</span>
+                      <span style={{ color: t.charcoal, fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{page || 'Home'}</span>
+                    </div>
+                    <span style={{ color: '#10B981', fontSize: '13px', fontWeight: '700', marginLeft: '12px' }}>{views}</span>
+                  </div>
+                ))}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ background: t.card, borderRadius: '12px', padding: '22px', border: `1px solid ${t.border}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
+                  <div style={{ width: '3px', height: '16px', background: '#8B5CF6', borderRadius: '2px' }} />
+                  <h3 style={{ fontFamily: 'Playfair Display', fontSize: '16px', color: t.charcoal }}>Top Referrers</h3>
+                </div>
+                {summary.topReferrers.length === 0
+                  ? <p style={{ color: t.mid, fontSize: '13px' }}>No referrer data yet. Most visitors came directly.</p>
+                  : summary.topReferrers.map(([ref, count], i) => (
+                    <div key={ref} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < summary.topReferrers.length - 1 ? `1px solid ${t.border}` : 'none' }}>
+                      <span style={{ color: t.charcoal, fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>
+                        {ref.replace('https://', '').replace('http://', '').split('/')[0]}
+                      </span>
+                      <span style={{ color: '#8B5CF6', fontSize: '13px', fontWeight: '700' }}>{count}</span>
+                    </div>
+                  ))}
+              </div>
+              <div style={{ background: 'linear-gradient(135deg,#040C16,#0F1E30)', borderRadius: '12px', padding: '20px', border: '1px solid #1A2D44' }}>
+                <div style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '700', marginBottom: '10px' }}>Power tip</div>
+                <p style={{ color: '#94A3B8', fontSize: '13px', lineHeight: '1.6', marginBottom: '12px' }}>Connect Google Analytics 4 for deeper geographic data and real-time users.</p>
+                <a href="https://analytics.google.com" target="_blank" rel="noreferrer" style={{ color: '#4FC3F7', fontSize: '12px', fontWeight: '600', textDecoration: 'none' }}>Open Google Analytics →</a>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
@@ -1743,7 +2048,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem('s2040_dark', dark); }, [dark]);
   useEffect(() => { localStorage.setItem('s2040_tab', adminTab); }, [adminTab]);
   useEffect(() => { if (page !== 'admin') localStorage.setItem('s2040_page', page); }, [page]);
-  useEffect(() => { document.title = `${siteTitle} 2040`; }, [siteTitle]);
+  useEffect(() => { document.title = `${siteTitle} 2040 · Build. Unite. Lead.`; }, [siteTitle]);
 
   const nav = useCallback((p) => {
     if (p !== 'admin') {
@@ -1901,10 +2206,13 @@ export default function App() {
   return (
     <>
       <GlobalStyles dark={dark} />
+      <MetaTags page={page} post={page === 'post' ? activePost : null} siteTitle={siteTitle} />
+      <a href="#main-content" className="skip-link">Skip to content</a>
       <div style={{ minHeight: '100vh', background: T.bg, fontFamily: "'DM Sans',sans-serif" }}>
         <Nav page={page} setPage={nav} lang={lang} setLang={setLang} dark={dark} setDark={setDark} T={T} siteTitle={siteTitle} />
         {!annDismissed && announcement && <AnnouncementBanner announcement={announcement} onClose={() => setAnnDismissed(true)} />}
 
+        <main id="main-content">
         {loading ? (
           <div style={{ paddingTop: '64px', minHeight: '100vh', maxWidth: '800px', margin: '0 auto', padding: '120px 24px' }}>
             {[['12px','100px','20px'],['48px','70%','14px'],['48px','50%','28px'],['16px','90%'],['16px','80%'],['16px','85%']].map(([h, w, mb], i) => (
@@ -1946,6 +2254,7 @@ export default function App() {
           </>
         )}
 
+        </main>
         <Footer setPage={nav} T={T} siteTitle={siteTitle} />
         <div onClick={() => { setPage('admin'); window.scrollTo(0,0); }} style={{ position: 'fixed', bottom: '20px', right: '20px', background: '#040C16', color: '#4FC3F7', border: '1px solid #1A2D44', padding: '8px 14px', borderRadius: '30px', fontSize: '12px', cursor: 'pointer', boxShadow: '0 4px 24px rgba(0,0,0,0.4)', fontWeight: '600', zIndex: 50, transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.background = '#4FC3F7'; e.currentTarget.style.color = '#040C16'; }} onMouseLeave={e => { e.currentTarget.style.background = '#040C16'; e.currentTarget.style.color = '#4FC3F7'; }}>Admin</div>
         <BackToTop />
