@@ -12,6 +12,7 @@ import {
   getAnnouncement, saveAnnouncement, clearAnnouncement, publishScheduledPosts,
   signUp, signIn, signOut, getSession, getProfile, updateProfile,
   savePostForUser, unsavePostForUser, getUserSavedPosts, checkPostSaved,
+  likeVoice, isVoiceLiked,
 } from "./supabase.js";
 
 /* ─── GLOBAL STYLES ────────────────────────────────── */
@@ -36,6 +37,10 @@ const MetaTags = ({ page, post, siteTitle }) => {
     s('og:type', post ? 'article' : 'website', 1); s('og:url', url, 1); s('og:image', img, 1);
     s('og:site_name', `${siteTitle} 2040`, 1); s('twitter:card', 'summary_large_image');
     s('twitter:title', t); s('twitter:description', d); s('twitter:image', img);
+    // Canonical URL
+    let cl = document.querySelector('link[rel="canonical"]');
+    if (!cl) { cl = document.createElement('link'); cl.rel = 'canonical'; document.head.appendChild(cl); }
+    cl.href = url;
   }, [page, post, siteTitle]);
   return null;
 };
@@ -81,8 +86,8 @@ const GlobalStyles = ({ dark }) => {
 const getT = (dark) => ({
   bg: dark ? '#08111E' : '#FAFAF8', soft: dark ? '#0F1E30' : '#F4F4F0',
   card: dark ? '#0F1E30' : '#FFFFFF', border: dark ? '#1A2D44' : '#E8E8E4',
-  charcoal: dark ? '#F1F5F9' : '#0F172A', body: dark ? '#CBD5E1' : '#374151',
-  mid: dark ? '#64748B' : '#9CA3AF', blue: '#4FC3F7',
+  charcoal: dark ? '#F1F5F9' : '#0F172A', body: dark ? '#CBD5E1' : '#1F2937',
+  mid: dark ? '#64748B' : '#6B7280', blue: '#4FC3F7',
   blueDark: dark ? '#7DD3F8' : '#0284C7', gold: '#D97706',
   navBg: dark ? 'rgba(8,17,30,0.95)' : 'rgba(250,250,248,0.95)',
   footBg: dark ? '#040C16' : '#0A0F1A', inputBg: dark ? '#08111E' : '#FFFFFF',
@@ -112,7 +117,7 @@ const useInView = (ref) => {
 const AnimatedDiv = ({ children, style = {}, delay = 0 }) => {
   const ref = useRef(null);
   const v = useInView(ref);
-  return <div ref={ref} style={{ opacity: v ? 1 : 0, transform: v ? 'none' : 'translateY(14px)', transition: `opacity 0.4s ease ${delay}s, transform 0.4s ease ${delay}s`, ...style }}>{children}</div>;
+  return <div ref={ref} style={{ opacity: v ? 1 : 0.15, transform: v ? 'none' : 'translateY(8px)', transition: `opacity 0.3s ease ${delay}s, transform 0.3s ease ${delay}s`, ...style }}>{children}</div>;
 };
 
 const fmt = (n) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : String(n || 0);
@@ -133,7 +138,7 @@ const BackToTop = () => {
 };
 
 const StarLogo = ({ size = 36 }) => (
-  <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" role="img" aria-label="Hiigsiga 2040 star logo">
     <rect width="40" height="40" rx="9" fill="#4FC3F7"/>
     <polygon points="20,7 23.1,16.6 33.5,16.6 25.2,22.4 28.3,32 20,26.2 11.7,32 14.8,22.4 6.5,16.6 16.9,16.6" fill="white"/>
   </svg>
@@ -154,7 +159,7 @@ const ShareBtns = ({ title, T }) => {
   const [copied, setCopied] = useState(false);
   const url = typeof window !== 'undefined' ? window.location.href : 'https://politics.mmohamud.me';
   const encodedUrl = encodeURIComponent(url);
-  const encodedTitle = encodeURIComponent(title || 'Somalia 2040');
+  const encodedTitle = encodeURIComponent(title || 'Hiigsiga 2040');
 
   const copy = () => { navigator.clipboard?.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
@@ -183,11 +188,11 @@ const ShareBtns = ({ title, T }) => {
 
 const Newsletter = ({ T, compact }) => {
   const t = T || getT(false); const [email, setEmail] = useState(''); const [status, setStatus] = useState('idle');
-  const submit = async () => { if (!email || !email.includes('@')) return; setStatus('loading'); try { await fetch('https://formspree.io/f/xeepavdd', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ email, _subject: 'Somalia 2040 Newsletter' }) }); setStatus('success'); } catch { setStatus('error'); } };
+  const submit = async () => { if (!email || !email.includes('@')) return; setStatus('loading'); try { await fetch('https://formspree.io/f/xeepavdd', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ email, _subject: 'Hiigsiga 2040 Newsletter' }) }); setStatus('success'); } catch { setStatus('error'); } };
   if (compact) return (
     <div style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px' }}>
       <div style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px', fontWeight: '700' }}>Newsletter</div>
-      <p style={{ color: t.body, fontSize: '13px', marginBottom: '12px', lineHeight: '1.6' }}>Somalia 2040 updates to your inbox.</p>
+      <p style={{ color: t.body, fontSize: '13px', marginBottom: '12px', lineHeight: '1.6' }}>Hiigsiga 2040 updates to your inbox.</p>
       {status === 'success' ? <p style={{ color: '#059669', fontSize: '13px', fontWeight: '500' }}>You are in. Thank you.</p> : (
         <div style={{ display: 'flex', gap: '8px' }}>
           <input value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" type="email" style={{ flex: 1, padding: '8px 11px', border: `1px solid ${t.border}`, borderRadius: '6px', fontSize: '13px', background: t.inputBg, color: t.charcoal, outline: 'none', minWidth: 0 }} />
@@ -199,7 +204,7 @@ const Newsletter = ({ T, compact }) => {
   return (
     <div style={{ background: '#0A0F1A', borderRadius: '16px', padding: '44px 32px', textAlign: 'center', marginTop: '60px' }}>
       <div style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px', fontWeight: '700' }}>Stay Connected</div>
-      <h3 style={{ fontFamily: 'Playfair Display', fontSize: '24px', color: '#FFF', marginBottom: '8px' }}>Join the Somalia 2040 newsletter</h3>
+      <h3 style={{ fontFamily: 'Playfair Display', fontSize: '24px', color: '#FFF', marginBottom: '8px' }}>Join the Hiigsiga 2040 newsletter</h3>
       <p style={{ color: '#64748B', fontSize: '14px', marginBottom: '24px', lineHeight: '1.7' }}>Essays, updates, and ideas. No noise, just signal.</p>
       {status === 'success' ? <p style={{ color: '#34D399', fontSize: '15px', fontWeight: '500' }}>You are in. Thank you.</p> : (
         <div style={{ display: 'flex', gap: '10px', maxWidth: '400px', margin: '0 auto', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -284,22 +289,22 @@ const Nav = ({ page, setPage, lang, setLang, dark, setDark, T, siteTitle, user, 
     <>
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, background: onHero ? 'transparent' : scrolled ? t.navBg : t.bg, borderBottom: onHero ? '1px solid transparent' : `1px solid ${t.border}`, backdropFilter: !onHero && scrolled ? 'blur(14px)' : 'none', WebkitBackdropFilter: !onHero && scrolled ? 'blur(14px)' : 'none', transition: 'all 0.3s', padding: '0 24px' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px' }}>
-          <div onClick={() => go('home')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '11px' }}>
+          <div onClick={() => go('home')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '11px', flexShrink: 0, minWidth: 0 }}>
             <StarLogo size={36} />
             <div>
-              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: '17px', color: onHero ? '#F8FAFC' : t.charcoal, fontWeight: '600', lineHeight: '1.1', transition: 'color 0.3s' }}>{siteTitle || 'Somalia'} <span style={{ color: '#4FC3F7' }}>2040</span></div>
+              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: '17px', color: onHero ? '#F8FAFC' : t.charcoal, fontWeight: '600', lineHeight: '1.1', transition: 'color 0.3s' }}>{siteTitle || 'Hiigsiga'} <span style={{ color: '#4FC3F7' }}>2040</span></div>
               <div style={{ fontSize: '8px', letterSpacing: '2.5px', color: '#4FC3F7', textTransform: 'uppercase', fontWeight: '700' }}>Build. Unite. Lead.</div>
             </div>
           </div>
           {!isMobile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'nowrap' }}>
               {links.map(l => (
-                <span key={l.key} onClick={() => go(l.key)} style={{ color: page === l.key ? '#4FC3F7' : onHero ? '#CBD5E1' : t.charcoal, fontSize: '13px', fontWeight: page === l.key ? '600' : '400', cursor: 'pointer', transition: 'color 0.2s', position: 'relative' }}
+                <span key={l.key} onClick={() => go(l.key)} style={{ color: page === l.key ? '#4FC3F7' : onHero ? '#CBD5E1' : t.charcoal, fontSize: '13px', fontWeight: page === l.key ? '700' : '400', cursor: 'pointer', transition: 'color 0.2s', position: 'relative' }}
                   onMouseEnter={e => { if (page !== l.key) e.currentTarget.style.color = '#4FC3F7'; }}
                   onMouseLeave={e => { if (page !== l.key) e.currentTarget.style.color = onHero ? '#CBD5E1' : t.charcoal; }}
                 >
                   {l.label}
-                  {page === l.key && <div style={{ position: 'absolute', bottom: '-4px', left: 0, right: 0, height: '2px', background: '#4FC3F7', borderRadius: '1px', boxShadow: '0 0 8px rgba(79,195,247,0.5)' }} />}
+                  {page === l.key && <div style={{ position: 'absolute', bottom: '-6px', left: 0, right: 0, height: '3px', background: '#4FC3F7', borderRadius: '2px', boxShadow: '0 0 10px rgba(79,195,247,0.7)' }} />}
                 </span>
               ))}
               <button onClick={() => setLang(lang === 'en' ? 'so' : 'en')} title={lang === 'en' ? 'Switch to Somali' : 'Switch to English'} style={{ background: 'rgba(79,195,247,0.1)', border: '1px solid rgba(79,195,247,0.2)', borderRadius: '6px', padding: '5px 12px', fontSize: '11px', cursor: 'pointer', color: '#4FC3F7', fontWeight: '700', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -340,7 +345,7 @@ const FooterNewsletter = () => {
   const [done, setDone] = useState(false);
   const submit = async () => {
     if (!email || !email.includes('@')) return;
-    try { await fetch('https://formspree.io/f/xeepavdd', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ email, _subject: 'Somalia 2040 Newsletter' }) }); setDone(true); } catch {}
+    try { await fetch('https://formspree.io/f/xeepavdd', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify({ email, _subject: 'Hiigsiga 2040 Newsletter' }) }); setDone(true); } catch {}
   };
   if (done) return <p style={{ color: '#34D399', fontSize: '13px', fontWeight: '500' }}>✓ You are in.</p>;
   return (
@@ -362,7 +367,7 @@ const Footer = ({ setPage, T, siteTitle }) => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '11px', marginBottom: '20px' }}>
               <StarLogo size={32} />
               <div>
-                <div style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: '#F8FAFC', lineHeight: '1.1' }}>{siteTitle || 'Somalia'} <span style={{ color: '#4FC3F7' }}>2040</span></div>
+                <div style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: '#F8FAFC', lineHeight: '1.1' }}>{siteTitle || 'Hiigsiga'} <span style={{ color: '#4FC3F7' }}>2040</span></div>
                 <div style={{ fontSize: '8px', letterSpacing: '2.5px', color: '#4FC3F7', textTransform: 'uppercase', fontWeight: '700' }}>Build. Unite. Lead.</div>
               </div>
             </div>
@@ -389,7 +394,7 @@ const Footer = ({ setPage, T, siteTitle }) => {
         </div>
         <div style={{ height: '1px', background: '#0F1E30', margin: '0 0 28px' }} />
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <p style={{ color: '#334155', fontSize: '13px' }}>© 2026 politics.mmohamud.me · Somalia 2040</p>
+          <p style={{ color: '#334155', fontSize: '13px' }}>© 2026 politics.mmohamud.me · Hiigsiga 2040</p>
           <a href="https://mmohamud.me" style={{ color: '#334155', fontSize: '13px', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={e => e.target.style.color='#4FC3F7'} onMouseLeave={e => e.target.style.color='#334155'}>mmohamud.me</a>
         </div>
       </div>
@@ -398,7 +403,7 @@ const Footer = ({ setPage, T, siteTitle }) => {
 };
 
 
-const HomePage = ({ posts, lang, word, setPage, setCurrentPost, voices, dark, T }) => {
+const HomePage = ({ posts, lang, word, wordArchive, setPage, setCurrentPost, voices, dark, T }) => {
   const t = T;
   const isMobile = useIsMobile();
   const featured = posts.find(p => p.featured && p.published);
@@ -413,7 +418,7 @@ const HomePage = ({ posts, lang, word, setPage, setCurrentPost, voices, dark, T 
           <div className="fade-in" style={{ maxWidth: isMobile ? '100%' : '700px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px' }}>
               <div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} />
-              <span style={{ color: '#4FC3F7', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700' }}>Somalia 2040</span>
+              <span style={{ color: '#4FC3F7', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '700' }}>Hiigsiga 2040</span>
             </div>
             <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: isMobile ? '38px' : 'clamp(50px,6vw,78px)', color: '#F8FAFC', fontWeight: '700', lineHeight: '1.06', marginBottom: '24px', letterSpacing: '-1.5px' }}>
               {lang === 'en' ? <><span>Building the </span><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>future</span><br />Somalia deserves.</> : <><span>Dhisidda </span><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>mustaqbalka</span><br />Soomaaliya mudan.</>}
@@ -428,8 +433,9 @@ const HomePage = ({ posts, lang, word, setPage, setCurrentPost, voices, dark, T 
           </div>
         </div>
         <div style={{ position: 'absolute', bottom: '32px', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', animation: 'pulse 2s infinite' }}>
-          <div style={{ width: '1px', height: '40px', background: 'linear-gradient(to bottom,transparent,#4FC3F7)' }} />
-          <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#4FC3F7' }} />
+          <span style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '700', marginBottom: '6px', opacity: 0.7 }}>Scroll</span>
+          <div style={{ width: '1px', height: '40px', background: 'linear-gradient(to bottom,rgba(79,195,247,0.3),#4FC3F7)' }} />
+          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4FC3F7', boxShadow: '0 0 8px #4FC3F7' }} />
         </div>
       </div>
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '48px 20px' : '72px 24px' }}>
@@ -437,8 +443,18 @@ const HomePage = ({ posts, lang, word, setPage, setCurrentPost, voices, dark, T 
           <AnimatedDiv style={{ marginBottom: isMobile ? '56px' : '80px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}><div style={{ height: '1px', width: '40px', background: '#4FC3F7' }} /><span style={{ color: t.mid, fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase', fontWeight: '600' }}>Featured</span></div>
             <div onClick={() => setCurrentPost(featured)} style={{ cursor: 'pointer', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', borderRadius: '16px', overflow: 'hidden', border: `1px solid ${t.border}`, transition: 'all 0.3s' }} onMouseEnter={e => { e.currentTarget.style.transform='translateY(-4px)'; e.currentTarget.style.boxShadow='0 24px 64px rgba(79,195,247,0.1)'; }} onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none'; }}>
-              <div style={{ background: featured.thumbnail_url ? 'none' : 'linear-gradient(135deg,#0A0F1A,#0F172A)', minHeight: isMobile ? '200px' : '380px', overflow: 'hidden', position: 'relative' }}>
-                {featured.thumbnail_url ? <img src={featured.thumbnail_url} alt={featured.title} style={{ width: '100%', height: '100%', objectFit: 'cover', minHeight: isMobile ? '200px' : '380px' }} /> : <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontFamily: 'Playfair Display', fontSize: '140px', color: '#4FC3F7', opacity: 0.06, lineHeight: 1 }}>"</span></div>}
+              <div style={{ background: 'linear-gradient(135deg,#040C16,#0B1829)', minHeight: isMobile ? '220px' : '380px', overflow: 'hidden', position: 'relative' }}>
+                {featured.thumbnail_url
+                  ? <img src={featured.thumbnail_url} alt={featured.title || 'Featured essay'} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0 }} onError={e => e.target.style.display='none'} />
+                  : null}
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                  <span style={{ fontFamily: 'Playfair Display', fontSize: '120px', color: '#4FC3F7', opacity: 0.08, lineHeight: 1 }}>"</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '32px', height: '1px', background: 'rgba(79,195,247,0.3)' }} />
+                    <span style={{ color: 'rgba(79,195,247,0.5)', fontSize: '10px', letterSpacing: '3px', textTransform: 'uppercase' }}>Featured Essay</span>
+                    <div style={{ width: '32px', height: '1px', background: 'rgba(79,195,247,0.3)' }} />
+                  </div>
+                </div>
               </div>
               <div style={{ padding: isMobile ? '28px 24px' : '52px 48px', background: t.card, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <Tag T={t} color="#4FC3F7">Featured Essay</Tag>
@@ -483,7 +499,22 @@ const HomePage = ({ posts, lang, word, setPage, setCurrentPost, voices, dark, T 
                   <div style={{ fontFamily: 'Playfair Display', fontSize: '30px', color: '#F8FAFC', marginBottom: '6px', fontStyle: 'italic' }}>{word.somali}</div>
                   <div style={{ color: '#D97706', fontSize: '14px', fontWeight: '600', marginBottom: '14px' }}>{word.english}</div>
                   <p style={{ color: '#475569', fontSize: '13px', lineHeight: '1.7', fontStyle: 'italic' }}>{word.sentence}</p>
-                  {word.date && <div style={{ color: '#334155', fontSize: '11px', marginTop: '12px', letterSpacing: '0.5px' }}>Updated {word.date}</div>}
+                  <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    {word.date && <span style={{ color: '#334155', fontSize: '11px', letterSpacing: '0.5px' }}>Updated {word.date}</span>}
+                  </div>
+                  {wordArchive && wordArchive.length > 1 && (
+                    <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #0F1E30' }}>
+                      <div style={{ color: '#334155', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '8px', fontWeight: '700' }}>Previous words</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {wordArchive.slice(1, 4).map((w, i) => (
+                          <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
+                            <span style={{ color: '#4FC3F7', fontSize: '13px', fontStyle: 'italic', fontFamily: 'Playfair Display' }}>{w.somali}</span>
+                            <span style={{ color: '#334155', fontSize: '11px' }}>{w.english}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </AnimatedDiv>
             )}
@@ -659,7 +690,7 @@ const StoryPage = ({ lang, T }) => {
               </div>
             </div>
             <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {[['Based in','Columbus, Ohio'],['Field','Cybersecurity & IT'],['Education','MS Cybersecurity, WGU'],['Goal','Somalia 2040']].map(item => (
+              {[['Based in','Columbus, Ohio'],['Field','Cybersecurity & IT'],['Education','MS Cybersecurity, WGU'],['Hiigsiga','Hiigsiga 2040']].map(item => (
                 <div key={item[0]} style={{ display: 'flex', gap: '8px' }}>
                   <span style={{ color: t.mid, fontSize: '11px', fontWeight: '700', minWidth: '72px', textTransform: 'uppercase' }}>{item[0]}</span>
                   <span style={{ color: t.charcoal, fontSize: '13px' }}>{item[1]}</span>
@@ -692,7 +723,7 @@ const StoryPage = ({ lang, T }) => {
             {[['2','Degrees completed',null],['MS','Currently studying',null],['14+','Projects built','https://kulangroup.com'],['2040','The goal year',null]].map(([num,label,link]) => (
               <div key={num} onClick={link ? () => window.open(link,'_blank') : undefined} style={{ background: t.soft, border: `1px solid ${t.border}`, borderRadius: '12px', padding: '20px', textAlign: 'center', cursor: link ? 'pointer' : 'default', transition: 'border-color 0.2s' }} onMouseEnter={e => { if(link) e.currentTarget.style.borderColor='#4FC3F7'; }} onMouseLeave={e => { e.currentTarget.style.borderColor=t.border; }}>
                 <div style={{ fontFamily: 'Playfair Display', fontSize: '28px', color: '#4FC3F7', fontWeight: '700', marginBottom: '6px' }}>{num}</div>
-                <div style={{ color: t.mid, fontSize: '12px' }}>{label}{link && <span style={{ color: '#4FC3F7', marginLeft: '4px' }}>arrow</span>}</div>
+                <div style={{ color: t.mid, fontSize: '12px' }}>{label}{link && <span style={{ color: "#4FC3F7", marginLeft: "4px", fontSize: "10px" }}> (view)</span>}</div>
               </div>
             ))}
           </div>
@@ -761,6 +792,46 @@ const ReadingPage = ({ reading, lang, T }) => {
   );
 };
 
+const VoiceCard = ({ v, t }) => {
+  const [liked, setLiked] = useState(() => isVoiceLiked(v.id));
+  const [likes, setLikes] = useState(v.likes || 0);
+  const [anim, setAnim] = useState(false);
+
+  const handleLike = async (e) => {
+    e.stopPropagation();
+    if (liked) return;
+    setAnim(true);
+    setTimeout(() => setAnim(false), 400);
+    const result = await likeVoice(v.id);
+    if (!result.alreadyLiked) { setLiked(true); setLikes(l => l + 1); }
+  };
+
+  return (
+    <div style={{ background: t.soft, border: `1px solid ${v.featured ? '#D97706' : t.border}`, borderRadius: '14px', padding: '24px', height: '100%', borderTop: `3px solid ${v.featured ? '#D97706' : t.border}`, position: 'relative', display: 'flex', flexDirection: 'column' }}>
+      {v.featured && (
+        <span style={{ position: 'absolute', top: '14px', right: '14px', background: '#D97706', color: '#FFF', fontSize: '9px', fontWeight: '700', letterSpacing: '1px', padding: '2px 8px', borderRadius: '20px', textTransform: 'uppercase' }}>Featured</span>
+      )}
+      <p style={{ color: t.charcoal, fontSize: '15px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '16px', flex: 1 }}>"{v.text}"</p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg,#4FC3F7,#0284C7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: '#FFF', flexShrink: 0 }}>
+            {(v.author || 'A').charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div style={{ color: t.charcoal, fontSize: '13px', fontWeight: '600' }}>{v.author}</div>
+            {v.location && <div style={{ color: t.mid, fontSize: '12px' }}>{v.location}</div>}
+          </div>
+        </div>
+        <button onClick={handleLike} disabled={liked} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: liked ? 'rgba(79,195,247,0.1)' : 'none', border: `1px solid ${liked ? 'rgba(79,195,247,0.3)' : t.border}`, borderRadius: '20px', padding: '5px 12px', cursor: liked ? 'default' : 'pointer', color: liked ? '#4FC3F7' : t.mid, fontSize: '12px', fontWeight: '600', transition: 'all 0.2s', transform: anim ? 'scale(1.2)' : 'scale(1)' }}>
+          <span style={{ fontSize: '14px' }}>{liked ? '♥' : '♡'}</span>
+          <span>{likes}</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+
 const ConnectPage = ({ voices, onVoiceSubmit, lang, monthlyQ, T }) => {
   const t = T;
   const isMobile = useIsMobile();
@@ -817,21 +888,7 @@ const ConnectPage = ({ voices, onVoiceSubmit, lang, monthlyQ, T }) => {
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: '16px' }}>
               {voices.map((v, i) => (
                 <AnimatedDiv key={v.id} delay={i * 0.05}>
-                  <div style={{ background: t.soft, border: `1px solid ${v.featured ? '#D97706' : t.border}`, borderRadius: '14px', padding: '24px', height: '100%', borderTop: `3px solid ${v.featured ? '#D97706' : t.border}`, position: 'relative' }}>
-                    {v.featured && (
-                      <span style={{ position: 'absolute', top: '14px', right: '14px', background: '#D97706', color: '#FFF', fontSize: '9px', fontWeight: '700', letterSpacing: '1px', padding: '2px 8px', borderRadius: '20px', textTransform: 'uppercase' }}>Featured</span>
-                    )}
-                    <p style={{ color: t.charcoal, fontSize: '15px', lineHeight: '1.8', fontStyle: 'italic', marginBottom: '16px' }}>"{v.text}"</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg,#4FC3F7,#0284C7)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: '#FFF', flexShrink: 0 }}>
-                        {(v.author || 'A').charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <div style={{ color: t.charcoal, fontSize: '13px', fontWeight: '600' }}>{v.author}</div>
-                        {v.location && <div style={{ color: t.mid, fontSize: '12px' }}>{v.location}</div>}
-                      </div>
-                    </div>
-                  </div>
+                  <VoiceCard v={v} t={t} />
                 </AnimatedDiv>
               ))}
             </div>
@@ -1114,7 +1171,7 @@ const AuthModal = ({ onClose, onSuccess, T }) => {
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <StarLogo size={40} />
           <h2 style={{ fontFamily: 'Playfair Display', fontSize: '22px', color: t.charcoal, marginTop: '12px', marginBottom: '4px', letterSpacing: '-0.3px' }}>
-            {mode === 'signin' ? 'Welcome back' : 'Join Somalia 2040'}
+            {mode === 'signin' ? 'Welcome back' : 'Join Hiigsiga 2040'}
           </h2>
           <p style={{ color: t.mid, fontSize: '13px' }}>
             {mode === 'signin' ? 'Sign in to save posts and join the conversation.' : 'Create an account to save posts and share your voice.'}
@@ -1209,7 +1266,7 @@ const MarketingPage = ({ setPage, lang, voices, posts, T }) => {
           <div className="fade-in" style={{ maxWidth: '720px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(79,195,247,0.08)', border: '1px solid rgba(79,195,247,0.15)', borderRadius: '20px', padding: '6px 14px', marginBottom: '28px' }}>
               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4FC3F7', animation: 'pulse 2s infinite' }} />
-              <span style={{ color: '#4FC3F7', fontSize: '12px', fontWeight: '600', letterSpacing: '1px' }}>Somalia 2040 · Build. Unite. Lead.</span>
+              <span style={{ color: '#4FC3F7', fontSize: '12px', fontWeight: '600', letterSpacing: '1px' }}>Hiigsiga 2040 · Build. Unite. Lead.</span>
             </div>
             <h1 style={{ fontFamily: 'Playfair Display', fontSize: isMobile ? '36px' : 'clamp(44px,5vw,68px)', color: '#F8FAFC', fontWeight: '700', lineHeight: '1.08', marginBottom: '24px', letterSpacing: '-1.5px' }}>
               {lang === 'en' ? <>The platform for<br /><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>Somalia\'s</span> future<br />leaders.</> : <>Madasha<br /><span style={{ color: '#4FC3F7', fontStyle: 'italic' }}>mustaqbalka</span><br />hogaaminteeda.</>}
@@ -1268,7 +1325,7 @@ const MarketingPage = ({ setPage, lang, voices, posts, T }) => {
               <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(79,195,247,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>🇸🇴</div>
               <div>
                 <div style={{ color: '#F8FAFC', fontSize: '14px', fontWeight: '600' }}>Mohamud Mohamed</div>
-                <div style={{ color: '#475569', fontSize: '12px' }}>Founder, Somalia 2040</div>
+                <div style={{ color: '#475569', fontSize: '12px' }}>Founder, Hiigsiga 2040</div>
               </div>
             </div>
           </div>
@@ -1561,7 +1618,7 @@ const AdminLogin = ({ onLogin, T }) => {
             <span style={{ color: '#FFFFFF', fontSize: "24px", fontFamily: "Playfair Display", fontWeight: "700" }}>S</span>
           </div>
           <h2 style={{ fontFamily: "Playfair Display", fontSize: "26px", color: t.charcoal, marginBottom: "6px" }}>Admin Access</h2>
-          <p style={{ color: t.mid, fontSize: "13px" }}>Somalia 2040 - Dashboard</p>
+          <p style={{ color: t.mid, fontSize: "13px" }}>Hiigsiga 2040 - Dashboard</p>
         </div>
         <label style={{ color: t.mid, fontSize: "12px", display: "block", marginBottom: "6px" }}>Email</label>
         <input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && attempt()} placeholder="your@email.com" style={iStyle(err)} />
@@ -1632,118 +1689,256 @@ const AdminShell = ({ children, tab, setTab, onLogout, T }) => {
 
 const AdminDash = ({ posts, voices, T, onTabChange }) => {
   const t = T || getT(false);
+  const published = posts.filter(p => p.published);
+  const drafts = posts.filter(p => !p.published);
+  const pending = posts.flatMap(p => (p.somalia_comments || []).filter(c => !c.approved));
+  const recentVoices = [...voices].sort((a,b) => b.id - a.id).slice(0, 3);
+  const recentComments = pending.slice(0, 3);
+
   const stats = [
-    { label: "Published Posts", value: posts.filter(p => p.published).length, color: '#4FC3F7' },
-    { label: "Drafts", value: posts.filter(p => !p.published).length, color: '#D97706' },
-    { label: "Pending Comments", value: posts.flatMap(p => p.somalia_comments || []).filter(c => !c.approved).length, color: "#EF4444" },
-    { label: "Community Voices", value: voices.length, color: "#10B981" },
+    { label: 'Published', value: published.length, color: '#4FC3F7', tab: 'posts' },
+    { label: 'Drafts', value: drafts.length, color: '#D97706', tab: 'posts' },
+    { label: 'Pending Comments', value: pending.length, color: '#EF4444', tab: 'comments' },
+    { label: 'Voices', value: voices.length, color: '#10B981', tab: 'community' },
   ];
+
+  const quickActions = [
+    { label: '✏️ New Post', tab: 'posts' },
+    { label: '📖 Word of Week', tab: 'word' },
+    { label: '📊 Analytics', tab: 'analytics' },
+    { label: '⚙️ Settings', tab: 'settings' },
+  ];
+
   return (
     <div className="fade-in">
-      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal, marginBottom: "32px" }}>Dashboard</h1>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "40px" }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <h1 style={{ fontFamily: 'Playfair Display', fontSize: '26px', color: t.charcoal }}>Dashboard</h1>
+        <span style={{ color: t.mid, fontSize: '13px' }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+      </div>
+
+      {/* Quick Actions */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '24px' }}>
+        {quickActions.map(a => (
+          <button key={a.tab} onClick={() => onTabChange(a.tab)} style={{ padding: '8px 16px', borderRadius: '8px', border: `1px solid ${t.border}`, background: t.card, color: t.charcoal, fontSize: '13px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#4FC3F7'; e.currentTarget.style.color = '#4FC3F7'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.charcoal; }}
+          >{a.label}</button>
+        ))}
+      </div>
+
+      {/* Stat Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '24px' }}>
         {stats.map(s => (
-          <div key={s.label} style={{ background: '#FFFFFF', borderRadius: "12px", padding: "24px", borderTop: `3px solid ${s.color}` }}>
-            <div style={{ fontSize: "32px", fontWeight: "700", color: s.color, fontFamily: "Playfair Display" }}>{s.value}</div>
-            <div style={{ color: t.mid, fontSize: "13px", marginTop: "4px" }}>{s.label}</div>
+          <div key={s.label} onClick={() => onTabChange(s.tab)} style={{ background: t.card, borderRadius: '12px', padding: '20px', borderTop: `3px solid ${s.color}`, cursor: 'pointer', transition: 'transform 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <div style={{ fontSize: '30px', fontWeight: '700', color: s.color, fontFamily: 'Playfair Display', lineHeight: 1 }}>{s.value}</div>
+            <div style={{ color: t.mid, fontSize: '12px', marginTop: '6px' }}>{s.label}</div>
           </div>
         ))}
       </div>
-      <div style={{ background: '#FFFFFF', borderRadius: "12px", padding: "28px" }}>
-        <h3 style={{ fontFamily: "Playfair Display", fontSize: "18px", color: t.charcoal, marginBottom: "20px" }}>Recent Posts</h3>
-        {posts.slice(0, 5).map(p => (
-          <div key={p.id} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: `1px solid ${t.border}`, alignItems: "center" }}>
-            <div>
-              <span style={{ color: t.charcoal, fontSize: "14px", fontWeight: "500" }}>{p.title}</span>
-              <span style={{ color: t.mid, fontSize: "12px", display: "block" }}>{p.date}</span>
-            </div>
-            <span style={{ background: p.published ? t.lightBlue : "#FEF3C7", color: p.published ? t.blueDark : "#92400E", fontSize: "10px", padding: "3px 10px", borderRadius: "20px", fontWeight: "600" }}>
-              {p.published ? "Published" : "Draft"}
-            </span>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '16px' }}>
+        {/* Recent Posts */}
+        <div style={{ background: t.card, borderRadius: '12px', padding: '24px', border: `1px solid ${t.border}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+            <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal }}>Recent Posts</h3>
+            <button onClick={() => onTabChange('posts')} style={{ background: 'none', border: 'none', color: '#4FC3F7', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}>View all →</button>
           </div>
-        ))}
+          {posts.length === 0 && <p style={{ color: t.mid, fontSize: '14px' }}>No posts yet.</p>}
+          {posts.slice(0, 6).map(p => (
+            <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: `1px solid ${t.border}`, alignItems: 'center' }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ color: t.charcoal, fontSize: '14px', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</div>
+                <div style={{ color: t.mid, fontSize: '11px', marginTop: '2px' }}>{p.date} · {p.views || 0} views</div>
+              </div>
+              <span style={{ flexShrink: 0, marginLeft: '12px', background: p.published ? 'rgba(79,195,247,0.1)' : '#FEF3C7', color: p.published ? '#4FC3F7' : '#92400E', fontSize: '10px', padding: '2px 8px', borderRadius: '20px', fontWeight: '600' }}>
+                {p.published ? 'Live' : 'Draft'}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Pending Comments */}
+          <div style={{ background: t.card, borderRadius: '12px', padding: '20px', border: `1px solid ${t.border}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h3 style={{ fontFamily: 'Playfair Display', fontSize: '16px', color: t.charcoal }}>Pending Comments {pending.length > 0 && <span style={{ color: '#EF4444' }}>({pending.length})</span>}</h3>
+              <button onClick={() => onTabChange('comments')} style={{ background: 'none', border: 'none', color: '#4FC3F7', fontSize: '11px', cursor: 'pointer', fontWeight: '600' }}>Review →</button>
+            </div>
+            {recentComments.length === 0
+              ? <p style={{ color: t.mid, fontSize: '13px' }}>No pending comments.</p>
+              : recentComments.map(c => (
+                <div key={c.id} style={{ padding: '8px 0', borderBottom: `1px solid ${t.border}` }}>
+                  <div style={{ color: t.charcoal, fontSize: '13px', fontWeight: '500' }}>{c.author}</div>
+                  <div style={{ color: t.mid, fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.text}</div>
+                </div>
+              ))
+            }
+          </div>
+
+          {/* Recent Voice Submissions */}
+          <div style={{ background: t.card, borderRadius: '12px', padding: '20px', border: `1px solid ${t.border}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h3 style={{ fontFamily: 'Playfair Display', fontSize: '16px', color: t.charcoal }}>Community Voices</h3>
+              <button onClick={() => onTabChange('community')} style={{ background: 'none', border: 'none', color: '#4FC3F7', fontSize: '11px', cursor: 'pointer', fontWeight: '600' }}>Manage →</button>
+            </div>
+            {recentVoices.length === 0
+              ? <p style={{ color: t.mid, fontSize: '13px' }}>No voices yet.</p>
+              : recentVoices.map(v => (
+                <div key={v.id} style={{ padding: '8px 0', borderBottom: `1px solid ${t.border}` }}>
+                  <div style={{ color: t.charcoal, fontSize: '13px', fontWeight: '500' }}>{v.author} {v.location ? `· ${v.location}` : ''}</div>
+                  <div style={{ color: t.mid, fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontStyle: 'italic' }}>"{v.text}"</div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-/* ─── ADMIN POSTS ─────────────────────────────────────────────── */
 const AdminPosts = ({ posts, onSave, onDelete, onToggle, T }) => {
   const t = T || getT(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ title: "", title_so: "", excerpt: "", excerpt_so: "", content: "", content_so: "", published: false, featured: false });
+  const [form, setForm] = useState({ title: '', title_so: '', excerpt: '', excerpt_so: '', content: '', content_so: '', published: false, featured: false, thumbnail_url: '', tags: '', category: '', seo_description: '', scheduled_at: '' });
   const [saving, setSaving] = useState(false);
+  const [tab, setTab] = useState('content');
 
-  const openEdit = (post) => { setEditing(post.id); setForm({ title: post.title, title_so: post.title_so || "", excerpt: post.excerpt || "", excerpt_so: post.excerpt_so || "", content: post.content || "", content_so: post.content_so || "", published: post.published, featured: post.featured }); };
-  const openNew = () => { setEditing("new"); setForm({ title: "", title_so: "", excerpt: "", excerpt_so: "", content: "", content_so: "", published: false, featured: false }); };
-  const save = async () => {
+  const openEdit = (post) => {
+    setEditing(post.id);
+    setForm({ title: post.title || '', title_so: post.title_so || '', excerpt: post.excerpt || '', excerpt_so: post.excerpt_so || '', content: post.content || '', content_so: post.content_so || '', published: post.published || false, featured: post.featured || false, thumbnail_url: post.thumbnail_url || '', tags: (post.tags || []).join(', '), category: post.category || '', seo_description: post.seo_description || '', scheduled_at: post.scheduled_at || '' });
+    setTab('content');
+  };
+  const openNew = () => {
+    setEditing('new');
+    setForm({ title: '', title_so: '', excerpt: '', excerpt_so: '', content: '', content_so: '', published: false, featured: false, thumbnail_url: '', tags: '', category: '', seo_description: '', scheduled_at: '' });
+    setTab('content');
+  };
+  const save = async (publishNow) => {
     setSaving(true);
-    const payload = editing === "new"
-      ? { ...form, date: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) }
-      : { id: editing, ...form };
+    const payload = {
+      ...(editing !== 'new' ? { id: editing } : { date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) }),
+      ...form,
+      tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+      published: publishNow !== undefined ? publishNow : form.published,
+    };
     await onSave(payload);
     setSaving(false);
     setEditing(null);
   };
 
-  const inputStyle = { width: "100%", padding: "10px 12px", border: `1px solid ${t.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", marginBottom: "12px", outline: "none" };
+  const iStyle = { width: '100%', padding: '10px 12px', border: `1px solid ${t.border}`, borderRadius: '8px', fontSize: '14px', outline: 'none', background: t.inputBg, color: t.charcoal, fontFamily: "'DM Sans',sans-serif", marginBottom: '4px' };
+  const tabs = ['content', 'seo', 'settings'];
 
   if (editing !== null) return (
     <div className="fade-in">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
-        <h1 style={{ fontFamily: "Playfair Display", fontSize: "24px", color: t.charcoal }}>{editing === "new" ? "New Post" : "Edit Post"}</h1>
-        <div style={{ display: "flex", gap: "10px" }}>
-          <Btn outline small onClick={() => setEditing(null)}>Cancel</Btn>
-          <Btn small onClick={save}>{saving ? "Saving..." : "Save Post"}</Btn>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+        <h1 style={{ fontFamily: 'Playfair Display', fontSize: '24px', color: t.charcoal }}>{editing === 'new' ? 'New Post' : 'Edit Post'}</h1>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <Btn outline small onClick={() => setEditing(null)} T={t}>Cancel</Btn>
+          <Btn small onClick={() => save(false)} T={t} style={{ background: t.soft, color: t.charcoal, border: `1px solid ${t.border}` }}>{saving ? 'Saving...' : 'Save Draft'}</Btn>
+          <Btn small onClick={() => save(true)} T={t}>{saving ? 'Publishing...' : 'Publish'}</Btn>
         </div>
       </div>
-      <div style={{ background: '#FFFFFF', borderRadius: "12px", padding: "28px" }}>
-        {[["title", "Title (English)"], ["title_so", "Title (Somali)"], ["excerpt", "Excerpt (English)"], ["excerpt_so", "Excerpt (Somali)"]].map(([field, label]) => (
-          <div key={field}>
-            <label style={{ color: t.mid, fontSize: "12px", display: "block", marginBottom: "4px" }}>{label}</label>
-            <input style={inputStyle} value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })} placeholder={label} />
-          </div>
+
+      {/* Tab bar */}
+      <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', background: t.soft, padding: '4px', borderRadius: '10px', width: 'fit-content' }}>
+        {tabs.map(tb => (
+          <button key={tb} onClick={() => setTab(tb)} style={{ padding: '7px 18px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '500', background: tab === tb ? '#4FC3F7' : 'transparent', color: tab === tb ? '#0A0F1A' : t.mid, transition: 'all 0.15s', textTransform: 'capitalize' }}>{tb}</button>
         ))}
-        {[["content", "Content (English)"], ["content_so", "Content (Somali)"]].map(([field, label]) => (
-          <div key={field}>
-            <label style={{ color: t.mid, fontSize: "12px", display: "block", marginBottom: "4px" }}>{label}</label>
-            <textarea style={{ ...inputStyle, resize: "vertical" }} rows={8} value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })} placeholder={label} />
-          </div>
-        ))}
-        <div style={{ display: "flex", gap: "24px", marginTop: "8px" }}>
-          {[["published", "Published"], ["featured", "Featured on Homepage"]].map(([field, label]) => (
-            <label key={field} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", color: t.charcoal }}>
-              <input type="checkbox" checked={form[field]} onChange={e => setForm({ ...form, [field]: e.target.checked })} />
-              {label}
-            </label>
-          ))}
-        </div>
       </div>
+
+      {tab === 'content' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ background: t.card, borderRadius: '12px', padding: '24px', border: `1px solid ${t.border}` }}>
+            <div style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '2px', fontWeight: '700', marginBottom: '14px' }}>ENGLISH</div>
+            <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700' }}>TITLE</label>
+            <input style={iStyle} value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Post title..." />
+            <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700' }}>EXCERPT</label>
+            <textarea style={{ ...iStyle, resize: 'vertical' }} rows={3} value={form.excerpt} onChange={e => setForm({...form, excerpt: e.target.value})} placeholder="Brief description..." />
+            <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700' }}>CONTENT</label>
+            <RTE value={form.content} onChange={v => setForm({...form, content: v})} T={t} />
+          </div>
+          <div style={{ background: t.card, borderRadius: '12px', padding: '24px', border: `1px solid ${t.border}` }}>
+            <div style={{ color: '#D97706', fontSize: '10px', letterSpacing: '2px', fontWeight: '700', marginBottom: '14px' }}>SOMALI 🇸🇴</div>
+            <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700' }}>TITLE (SO)</label>
+            <input style={iStyle} value={form.title_so} onChange={e => setForm({...form, title_so: e.target.value})} placeholder="Cinwaanka (Somali)..." />
+            <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700' }}>EXCERPT (SO)</label>
+            <textarea style={{ ...iStyle, resize: 'vertical' }} rows={3} value={form.excerpt_so} onChange={e => setForm({...form, excerpt_so: e.target.value})} placeholder="Soo koobid..." />
+            <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700' }}>CONTENT (SO)</label>
+            <textarea style={{ ...iStyle, resize: 'vertical' }} rows={10} value={form.content_so} onChange={e => setForm({...form, content_so: e.target.value})} placeholder="Qoraalka Somali..." />
+          </div>
+        </div>
+      )}
+
+      {tab === 'seo' && (
+        <div style={{ background: t.card, borderRadius: '12px', padding: '28px', border: `1px solid ${t.border}`, maxWidth: '700px' }}>
+          <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal, marginBottom: '20px' }}>SEO & Metadata</h3>
+          <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700', display: 'block', marginBottom: '4px' }}>COVER IMAGE URL</label>
+          <input style={iStyle} value={form.thumbnail_url} onChange={e => setForm({...form, thumbnail_url: e.target.value})} placeholder="https://..." />
+          {form.thumbnail_url && <img src={form.thumbnail_url} alt="Cover preview" style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '8px', marginBottom: '16px' }} onError={e => e.target.style.display='none'} />}
+          <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700', display: 'block', marginBottom: '4px' }}>SEO DESCRIPTION</label>
+          <textarea style={{ ...iStyle, resize: 'vertical' }} rows={3} value={form.seo_description} onChange={e => setForm({...form, seo_description: e.target.value})} placeholder="Meta description for search engines (150-160 chars)..." maxLength={160} />
+          <div style={{ color: form.seo_description.length > 150 ? '#EF4444' : t.mid, fontSize: '11px', marginBottom: '16px' }}>{form.seo_description.length}/160</div>
+          <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700', display: 'block', marginBottom: '4px' }}>CATEGORY</label>
+          <select style={{ ...iStyle }} value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
+            <option value="">No category</option>
+            {['Essay', 'Analysis', 'Opinion', 'Update', 'Interview'].map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700', display: 'block', marginBottom: '4px' }}>TAGS (comma separated)</label>
+          <input style={iStyle} value={form.tags} onChange={e => setForm({...form, tags: e.target.value})} placeholder="Somalia, governance, technology..." />
+        </div>
+      )}
+
+      {tab === 'settings' && (
+        <div style={{ background: t.card, borderRadius: '12px', padding: '28px', border: `1px solid ${t.border}`, maxWidth: '500px' }}>
+          <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal, marginBottom: '20px' }}>Post Settings</h3>
+          <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700', display: 'block', marginBottom: '4px' }}>SCHEDULE PUBLISH DATE</label>
+          <input type="datetime-local" style={{ ...iStyle, marginBottom: '16px' }} value={form.scheduled_at} onChange={e => setForm({...form, scheduled_at: e.target.value})} />
+          <p style={{ color: t.mid, fontSize: '12px', marginBottom: '24px', lineHeight: '1.5' }}>Leave blank to publish immediately. Scheduled posts go live when you click "Run Scheduler" in Settings.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {[['featured', 'Featured on Homepage', 'Pin this post to the homepage hero card'], ['published', 'Published', 'Make this post visible to visitors']].map(([field, label, desc]) => (
+              <div key={field} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', background: t.soft, borderRadius: '10px', border: `1px solid ${t.border}` }}>
+                <div>
+                  <div style={{ color: t.charcoal, fontSize: '14px', fontWeight: '500' }}>{label}</div>
+                  <div style={{ color: t.mid, fontSize: '12px', marginTop: '2px' }}>{desc}</div>
+                </div>
+                <div onClick={() => setForm({...form, [field]: !form[field]})} style={{ width: '42px', height: '24px', borderRadius: '12px', background: form[field] ? '#4FC3F7' : t.border, cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                  <div style={{ position: 'absolute', top: '3px', left: form[field] ? '21px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: '#FFF', transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 
   return (
     <div className="fade-in">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
-        <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal }}>Blog Posts</h1>
-        <Btn small onClick={openNew}>+ New Post</Btn>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h1 style={{ fontFamily: 'Playfair Display', fontSize: '26px', color: t.charcoal }}>Blog Posts</h1>
+        <Btn small onClick={openNew} T={t}>+ New Post</Btn>
       </div>
-      <div style={{ background: '#FFFFFF', borderRadius: "12px", overflow: "hidden" }}>
-        {posts.map((p, i) => (
-          <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 24px", borderBottom: i < posts.length - 1 ? `1px solid ${t.border}` : "none" }}>
-            <div style={{ flex: 1 }}>
-              <span style={{ color: t.charcoal, fontSize: "14px", fontWeight: "500" }}>{p.title}</span>
-              <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
-                <span style={{ color: t.mid, fontSize: "11px" }}>{p.date}</span>
-                {p.featured && <span style={{ color: '#D97706', fontSize: "11px" }}>★ Featured</span>}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {posts.length === 0 && <div style={{ textAlign: 'center', padding: '60px', background: t.card, borderRadius: '12px', border: `1px solid ${t.border}` }}><div style={{ fontSize: '32px', marginBottom: '12px' }}>📝</div><p style={{ color: t.mid }}>No posts yet. Create your first essay.</p></div>}
+        {posts.map(p => (
+          <div key={p.id} style={{ background: t.card, borderRadius: '12px', padding: '18px 22px', border: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                <span style={{ color: t.charcoal, fontWeight: '600', fontSize: '15px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</span>
+                {p.featured && <span style={{ background: 'rgba(217,119,6,0.15)', color: '#D97706', fontSize: '10px', padding: '1px 7px', borderRadius: '20px', fontWeight: '700', flexShrink: 0 }}>Featured</span>}
               </div>
+              <div style={{ color: t.mid, fontSize: '12px' }}>{p.date} · {p.views || 0} views {p.category ? `· ${p.category}` : ''}</div>
             </div>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <span onClick={() => onToggle(p.id, "published", !p.published)} style={{ background: p.published ? t.lightBlue : "#FEF3C7", color: p.published ? t.blueDark : "#92400E", fontSize: "10px", padding: "3px 10px", borderRadius: "20px", fontWeight: "600", cursor: "pointer" }}>
-                {p.published ? "Published" : "Draft"}
-              </span>
-              <Btn small outline onClick={() => openEdit(p)}>Edit</Btn>
-              <Btn small onClick={() => onDelete(p.id)} style={{ background: "#FEF2F2", color: "#EF4444", border: "none" }}>Delete</Btn>
+            <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignItems: 'center' }}>
+              <span style={{ background: p.published ? 'rgba(79,195,247,0.1)' : '#FEF3C7', color: p.published ? '#4FC3F7' : '#92400E', fontSize: '10px', padding: '3px 10px', borderRadius: '20px', fontWeight: '700' }}>{p.published ? 'Live' : 'Draft'}</span>
+              <Btn small outline onClick={() => openEdit(p)} T={t}>Edit</Btn>
+              <Btn small onClick={() => onToggle(p.id, 'published', !p.published)} T={t} style={{ background: p.published ? '#FEF2F2' : 'rgba(79,195,247,0.1)', color: p.published ? '#EF4444' : '#4FC3F7', border: 'none', fontSize: '12px' }}>{p.published ? 'Unpublish' : 'Publish'}</Btn>
+              <Btn small onClick={() => window.confirm('Delete this post?') && onDelete(p.id)} T={t} style={{ background: '#FEF2F2', color: '#EF4444', border: 'none' }}>Del</Btn>
             </div>
           </div>
         ))}
@@ -1751,170 +1946,257 @@ const AdminPosts = ({ posts, onSave, onDelete, onToggle, T }) => {
     </div>
   );
 };
+const AdminReading = ({ reading, onAdd, onDelete , T }) => {
+  const t = T || getT(false);
+  const iStyle = { padding: '10px 12px', border: `1px solid ${t.border}`, borderRadius: '8px', fontFamily: "'DM Sans',sans-serif", fontSize: '14px', outline: 'none', background: t.inputBg, color: t.charcoal };
+  const [form, setForm] = useState({ title: '', author: '', category: '', note: '', status: 'Read', link: '' });
+  const add = async () => {
+    if (!form.title || !form.author) return;
+    await onAdd(form);
+    setForm({ title: '', author: '', category: '', note: '', status: 'Read', link: '' });
+  };
+  return (
+    <div className="fade-in">
+      <h1 style={{ fontFamily: 'Playfair Display', fontSize: '26px', color: t.charcoal, marginBottom: '24px' }}>Reading List</h1>
+      <div style={{ background: t.card, borderRadius: '12px', padding: '24px', marginBottom: '20px', border: `1px solid ${t.border}` }}>
+        <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal, marginBottom: '16px' }}>Add a Book</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+          <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="Title *" style={{ ...iStyle, width: '100%' }} />
+          <input value={form.author} onChange={e => setForm({...form, author: e.target.value})} placeholder="Author *" style={{ ...iStyle, width: '100%' }} />
+          <input value={form.category} onChange={e => setForm({...form, category: e.target.value})} placeholder="Category (e.g. Politics, History)" style={{ ...iStyle, width: '100%' }} />
+          <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} style={{ ...iStyle, width: '100%' }}>
+            <option value="Read">✓ Read</option>
+            <option value="Reading">📖 Currently Reading</option>
+            <option value="Recommended">⭐ Recommended</option>
+          </select>
+          <input value={form.link} onChange={e => setForm({...form, link: e.target.value})} placeholder="Goodreads / Amazon link (optional)" style={{ ...iStyle, width: '100%', gridColumn: 'span 2' }} />
+        </div>
+        <textarea value={form.note} onChange={e => setForm({...form, note: e.target.value})} placeholder="Why you recommend it — this shows on the public site..." rows={2}
+          style={{ ...iStyle, width: '100%', resize: 'vertical', marginBottom: '14px' }} />
+        <Btn small onClick={add} T={t}>Add Book</Btn>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {reading.length === 0 && <p style={{ color: t.mid, fontSize: '14px', padding: '20px' }}>No books yet.</p>}
+        {reading.map(b => (
+          <div key={b.id} style={{ background: t.card, borderRadius: '10px', padding: '16px 20px', border: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                <span style={{ color: t.charcoal, fontWeight: '600', fontSize: '14px' }}>{b.title}</span>
+                {b.status && <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '20px', fontWeight: '700', background: b.status === 'Reading' ? 'rgba(79,195,247,0.15)' : b.status === 'Read' ? 'rgba(16,185,129,0.15)' : 'rgba(217,119,6,0.15)', color: b.status === 'Reading' ? '#4FC3F7' : b.status === 'Read' ? '#10B981' : '#D97706' }}>{b.status}</span>}
+              </div>
+              <div style={{ color: t.mid, fontSize: '12px' }}>{b.author} · {b.category}</div>
+            </div>
+            <Btn small onClick={() => onDelete(b.id)} T={t} style={{ background: '#FEF2F2', color: '#EF4444', border: 'none', flexShrink: 0 }}>Remove</Btn>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+const AdminWord = ({ word, wordArchive, onUpdate , T }) => {
+  const t = T || getT(false);
+  const [form, setForm] = useState(word || { somali: '', english: '', sentence: '', sentence_en: '' });
+  const iStyle = { width: '100%', padding: '10px 12px', border: `1px solid ${t.border}`, borderRadius: '8px', fontFamily: "'DM Sans',sans-serif", fontSize: '14px', outline: 'none', background: t.inputBg, color: t.charcoal };
+
+  return (
+    <div className="fade-in">
+      <h1 style={{ fontFamily: 'Playfair Display', fontSize: '26px', color: t.charcoal, marginBottom: '24px' }}>Word of the Week</h1>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+        <div style={{ background: t.card, borderRadius: '12px', padding: '28px', border: `1px solid ${t.border}` }}>
+          <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal, marginBottom: '20px' }}>Current Word</h3>
+          {[['somali', 'Somali Word *'], ['english', 'English Translation *'], ['sentence', 'Example Sentence (Somali)'], ['sentence_en', 'Example Sentence (English)']].map(([field, label]) => (
+            <div key={field} style={{ marginBottom: '14px' }}>
+              <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700', display: 'block', marginBottom: '4px' }}>{label.toUpperCase()}</label>
+              <input value={form[field] || ''} onChange={e => setForm({...form, [field]: e.target.value})} placeholder={label} style={iStyle} />
+            </div>
+          ))}
+          <Btn onClick={() => onUpdate(form)} T={t}>Update Word</Btn>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {word && (
+            <div style={{ background: '#040C16', borderRadius: '12px', padding: '24px', border: '1px solid #1A2D44' }}>
+              <div style={{ color: '#4FC3F7', fontSize: '10px', letterSpacing: '2px', marginBottom: '12px', fontWeight: '700' }}>LIVE PREVIEW</div>
+              <div style={{ fontFamily: 'Playfair Display', fontSize: '26px', color: '#F8FAFC', fontStyle: 'italic', marginBottom: '4px' }}>{form.somali || word.somali}</div>
+              <div style={{ color: '#D97706', fontSize: '14px', fontWeight: '600', marginBottom: '10px' }}>{form.english || word.english}</div>
+              {(form.sentence || word.sentence) && <p style={{ color: '#475569', fontSize: '13px', fontStyle: 'italic' }}>{form.sentence || word.sentence}</p>}
+            </div>
+          )}
+
+          {wordArchive && wordArchive.length > 0 && (
+            <div style={{ background: t.card, borderRadius: '12px', padding: '20px', border: `1px solid ${t.border}` }}>
+              <h3 style={{ fontFamily: 'Playfair Display', fontSize: '16px', color: t.charcoal, marginBottom: '14px' }}>Word History ({wordArchive.length})</h3>
+              <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {wordArchive.map((w, i) => (
+                  <div key={i} style={{ display: 'flex', gap: '10px', padding: '8px 10px', background: t.soft, borderRadius: '8px' }}>
+                    <span style={{ color: '#4FC3F7', fontSize: '14px', fontStyle: 'italic', fontFamily: 'Playfair Display' }}>{w.somali}</span>
+                    <span style={{ color: t.mid, fontSize: '13px' }}>{w.english}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+const AdminCommunity = ({ voices, onToggleFeatured, onDelete, monthlyQ, onUpdateQ , T }) => {
+  const t = T || getT(false);
+  const [q, setQ] = useState(monthlyQ || '');
+  const [filter, setFilter] = useState('all');
+
+  const filtered = filter === 'featured' ? voices.filter(v => v.featured) : voices;
+
+  return (
+    <div className="fade-in">
+      <h1 style={{ fontFamily: 'Playfair Display', fontSize: '26px', color: t.charcoal, marginBottom: '24px' }}>Community Manager</h1>
+
+      <div style={{ background: t.card, borderRadius: '12px', padding: '24px', marginBottom: '16px', border: `1px solid ${t.border}` }}>
+        <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal, marginBottom: '14px' }}>Monthly Question</h3>
+        <textarea value={q} onChange={e => setQ(e.target.value)} rows={3}
+          style={{ width: '100%', padding: '12px', border: `1px solid ${t.border}`, borderRadius: '8px', fontFamily: "'DM Sans',sans-serif", fontSize: '14px', resize: 'vertical', outline: 'none', background: t.inputBg, color: t.charcoal, marginBottom: '12px' }} />
+        <Btn small onClick={() => onUpdateQ(q)} T={t}>Update Question</Btn>
+      </div>
+
+      <div style={{ background: t.card, borderRadius: '12px', border: `1px solid ${t.border}`, overflow: 'hidden' }}>
+        <div style={{ padding: '16px 24px', borderBottom: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal }}>Voices ({voices.length})</h3>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {['all', 'featured'].map(f => (
+              <button key={f} onClick={() => setFilter(f)} style={{ padding: '5px 12px', borderRadius: '6px', border: `1px solid ${filter === f ? '#4FC3F7' : t.border}`, background: filter === f ? 'rgba(79,195,247,0.1)' : 'transparent', color: filter === f ? '#4FC3F7' : t.mid, fontSize: '12px', cursor: 'pointer', fontWeight: '500', textTransform: 'capitalize' }}>{f}</button>
+            ))}
+          </div>
+        </div>
+        {filtered.length === 0 && <p style={{ color: t.mid, padding: '24px', fontSize: '14px' }}>No voices yet.</p>}
+        {filtered.map((v, i) => (
+          <div key={v.id} style={{ padding: '16px 24px', borderBottom: i < filtered.length - 1 ? `1px solid ${t.border}` : 'none', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap' }}>
+                <span style={{ color: t.charcoal, fontWeight: '600', fontSize: '14px' }}>{v.author}</span>
+                {v.location && <span style={{ color: t.mid, fontSize: '12px' }}>· {v.location}</span>}
+                {v.featured && <span style={{ background: 'rgba(217,119,6,0.15)', color: '#D97706', fontSize: '10px', padding: '1px 7px', borderRadius: '20px', fontWeight: '700' }}>Featured</span>}
+                {v.likes > 0 && <span style={{ color: '#4FC3F7', fontSize: '12px' }}>♥ {v.likes}</span>}
+              </div>
+              <p style={{ color: t.body, fontSize: '14px', lineHeight: '1.6', fontStyle: 'italic', marginBottom: '6px' }}>"{v.text}"</p>
+              {v.date && <span style={{ color: t.mid, fontSize: '11px' }}>{v.date}</span>}
+            </div>
+            <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+              <Btn small onClick={() => onToggleFeatured(v.id, !v.featured)} T={t} style={{ fontSize: '11px', background: v.featured ? 'rgba(217,119,6,0.1)' : 'transparent', color: v.featured ? '#D97706' : t.mid, border: `1px solid ${v.featured ? '#D97706' : t.border}` }}>
+                {v.featured ? 'Unfeature' : 'Feature'}
+              </Btn>
+              <Btn small onClick={() => window.confirm('Delete this voice?') && onDelete(v.id)} T={t} style={{ background: '#FEF2F2', color: '#EF4444', border: 'none', fontSize: '11px' }}>Del</Btn>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 
 /* ─── ADMIN COMMENTS ──────────────────────────────────────────── */
-const AdminComments = ({ posts, onApprove, onDelete , T }) => {  const t = T || getT(false);
-
+const AdminComments = ({ posts, onApprove, onDelete, T }) => {
+  const t = T || getT(false);
   const allComments = posts.flatMap(p => (p.somalia_comments || []).map(c => ({ ...c, postTitle: p.title })));
+  const pending = allComments.filter(c => !c.approved);
+  const approved = allComments.filter(c => c.approved);
   return (
     <div className="fade-in">
-      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal, marginBottom: "28px" }}>Comment Moderation</h1>
-      {allComments.length === 0 && <p style={{ color: t.mid }}>No comments yet.</p>}
-      {allComments.map(c => (
-        <div key={c.id} style={{ background: '#FFFFFF', borderRadius: "12px", padding: "20px 24px", marginBottom: "12px", borderLeft: `3px solid ${c.approved ? "#10B981" : "#F59E0B"}` }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-            <div>
-              <span style={{ fontWeight: "600", color: t.charcoal, fontSize: "14px" }}>{c.author}</span>
-              <span style={{ color: t.mid, fontSize: "12px", marginLeft: "12px" }}>on: {c.postTitle}</span>
-            </div>
-            <div style={{ display: "flex", gap: "8px" }}>
-              {!c.approved && <Btn small onClick={() => onApprove(c.id)} style={{ background: "#D1FAE5", color: "#065F46", border: "none" }}>Approve</Btn>}
-              <Btn small onClick={() => onDelete(c.id)} style={{ background: "#FEF2F2", color: "#EF4444", border: "none" }}>Delete</Btn>
-            </div>
+      <h1 style={{ fontFamily: 'Playfair Display', fontSize: '26px', color: t.charcoal, marginBottom: '8px' }}>Comment Moderation</h1>
+      <p style={{ color: t.mid, fontSize: '13px', marginBottom: '24px' }}>All comments require approval before appearing publicly.</p>
+      {pending.length > 0 && (
+        <div style={{ marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <div style={{ width: '3px', height: '16px', background: '#EF4444', borderRadius: '2px' }} />
+            <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal }}>Pending ({pending.length})</h3>
           </div>
-          <p style={{ color: t.charcoal, fontSize: "14px", lineHeight: "1.6" }}>{c.text}</p>
-          <span style={{ background: c.approved ? "#D1FAE5" : "#FEF3C7", color: c.approved ? "#065F46" : "#92400E", fontSize: "10px", padding: "2px 8px", borderRadius: "20px", fontWeight: "600", marginTop: "8px", display: "inline-block" }}>
-            {c.approved ? "Approved" : "Pending"}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-/* ─── ADMIN COMMUNITY ─────────────────────────────────────────── */
-const AdminCommunity = ({ voices, onToggleFeatured, onDelete, monthlyQ, onUpdateQ , T }) => {  const t = T || getT(false);
-
-  const [q, setQ] = useState(monthlyQ || "");
-  return (
-    <div className="fade-in">
-      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal, marginBottom: "28px" }}>Community Manager</h1>
-      <div style={{ background: '#FFFFFF', borderRadius: "12px", padding: "24px", marginBottom: "24px" }}>
-        <h3 style={{ fontFamily: "Playfair Display", fontSize: "18px", color: t.charcoal, marginBottom: "16px" }}>Monthly Question</h3>
-        <textarea value={q} onChange={e => setQ(e.target.value)} rows={3} style={{ width: "100%", padding: "12px", border: `1px solid ${t.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", resize: "vertical", outline: "none", marginBottom: "12px" }} />
-        <Btn small onClick={() => onUpdateQ(q)}>Update Question</Btn>
-      </div>
-      <div style={{ background: '#FFFFFF', borderRadius: "12px", overflow: "hidden" }}>
-        <div style={{ padding: "16px 24px", borderBottom: `1px solid ${t.border}` }}>
-          <h3 style={{ fontFamily: "Playfair Display", fontSize: "18px", color: t.charcoal }}>Community Voices ({voices.length})</h3>
-        </div>
-        {voices.map((v, i) => (
-          <div key={v.id} style={{ padding: "16px 24px", borderBottom: i < voices.length - 1 ? `1px solid ${t.border}` : "none" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div style={{ flex: 1 }}>
-                <span style={{ fontWeight: "600", color: t.charcoal, fontSize: "14px" }}>{v.author}</span>
-                {v.location && <span style={{ color: t.mid, fontSize: "12px" }}> - {v.location}</span>}
-                <p style={{ color: t.mid, fontSize: "13px", margin: "6px 0 0", lineHeight: "1.5" }}>{v.text}</p>
+          {pending.map(c => (
+            <div key={c.id} style={{ background: t.card, borderRadius: '12px', padding: '18px 22px', marginBottom: '10px', borderLeft: '3px solid #F59E0B', border: `1px solid ${t.border}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '12px' }}>
+                <div>
+                  <span style={{ fontWeight: '600', color: t.charcoal, fontSize: '14px' }}>{c.author}</span>
+                  <span style={{ color: t.mid, fontSize: '12px', marginLeft: '10px' }}>on: <em>{c.postTitle}</em></span>
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                  <Btn small onClick={() => onApprove(c.id)} T={t} style={{ background: '#D1FAE5', color: '#065F46', border: 'none', fontSize: '12px' }}>Approve</Btn>
+                  <Btn small onClick={() => onDelete(c.id)} T={t} style={{ background: '#FEF2F2', color: '#EF4444', border: 'none', fontSize: '12px' }}>Delete</Btn>
+                </div>
               </div>
-              <div style={{ display: "flex", gap: "8px", marginLeft: "16px" }}>
-                <Btn small onClick={() => onToggleFeatured(v.id, !v.featured)} style={{ background: v.featured ? "#FEF3C7" : t.lightBlue, color: v.featured ? "#92400E" : t.blueDark, border: "none" }}>
-                  {v.featured ? "Unfeature" : "Feature"}
-                </Btn>
-                <Btn small onClick={() => onDelete(v.id)} style={{ background: "#FEF2F2", color: "#EF4444", border: "none" }}>Delete</Btn>
+              <p style={{ color: t.body, fontSize: '14px', lineHeight: '1.6' }}>{c.text}</p>
+              {c.date && <span style={{ color: t.mid, fontSize: '11px', marginTop: '6px', display: 'block' }}>{c.date}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+      {approved.length > 0 && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <div style={{ width: '3px', height: '16px', background: '#10B981', borderRadius: '2px' }} />
+            <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal }}>Approved ({approved.length})</h3>
+          </div>
+          {approved.map(c => (
+            <div key={c.id} style={{ background: t.card, borderRadius: '12px', padding: '16px 20px', marginBottom: '8px', borderLeft: '3px solid #10B981', border: `1px solid ${t.border}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontWeight: '600', color: t.charcoal, fontSize: '14px' }}>{c.author}</span>
+                  <span style={{ color: t.mid, fontSize: '12px', marginLeft: '10px' }}>on: <em>{c.postTitle}</em></span>
+                  <p style={{ color: t.body, fontSize: '13px', marginTop: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.text}</p>
+                </div>
+                <Btn small onClick={() => onDelete(c.id)} T={t} style={{ background: '#FEF2F2', color: '#EF4444', border: 'none', flexShrink: 0 }}>Delete</Btn>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-/* ─── ADMIN WORD ──────────────────────────────────────────────── */
-const AdminWord = ({ word, onUpdate , T }) => {  const t = T || getT(false);
-
-  const [form, setForm] = useState(word || { somali: "", english: "", sentence: "" });
-  return (
-    <div className="fade-in">
-      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal, marginBottom: "28px" }}>Word of the Week</h1>
-      <div style={{ background: '#FFFFFF', borderRadius: "12px", padding: "28px", maxWidth: "500px" }}>
-        {[["somali", "Somali Word"], ["english", "English Translation"], ["sentence", "Example Sentence (Somali)"]].map(([field, label]) => (
-          <div key={field} style={{ marginBottom: "16px" }}>
-            <label style={{ color: t.mid, fontSize: "12px", display: "block", marginBottom: "6px" }}>{label}</label>
-            <input value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })}
-              style={{ width: "100%", padding: "10px 12px", border: `1px solid ${t.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", outline: "none" }} />
-          </div>
-        ))}
-        <Btn onClick={() => onUpdate(form)}>Update Word</Btn>
-      </div>
-      {word && (
-        <div style={{ marginTop: "24px", background: t.charcoal, borderRadius: "12px", padding: "24px", maxWidth: "500px" }}>
-          <div style={{ color: '#4FC3F7', fontSize: "10px", letterSpacing: "3px", marginBottom: "12px" }}>PREVIEW</div>
-          <div style={{ fontFamily: "Playfair Display", fontSize: "28px", color: '#FFFFFF' }}>{word.somali}</div>
-          <div style={{ color: '#D97706', fontSize: "14px", margin: "4px 0 10px" }}>{word.english}</div>
-          <p style={{ color: "#9CA3AF", fontSize: "13px", fontStyle: "italic" }}>{word.sentence}</p>
+          ))}
+        </div>
+      )}
+      {allComments.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '60px', background: t.card, borderRadius: '12px', border: `1px solid ${t.border}` }}>
+          <div style={{ fontSize: '32px', marginBottom: '12px' }}>💬</div>
+          <p style={{ color: t.mid }}>No comments yet.</p>
         </div>
       )}
     </div>
   );
 };
 
-/* ─── ADMIN READING ───────────────────────────────────────────── */
-const AdminReading = ({ reading, onAdd, onDelete , T }) => {  const t = T || getT(false);
-
-  const [form, setForm] = useState({ title: "", author: "", category: "", note: "" });
-  const add = async () => {
-    if (!form.title || !form.author) return;
-    await onAdd(form);
-    setForm({ title: "", author: "", category: "", note: "" });
-  };
-  return (
-    <div className="fade-in">
-      <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal, marginBottom: "28px" }}>Reading List</h1>
-      <div style={{ background: '#FFFFFF', borderRadius: "12px", padding: "24px", marginBottom: "24px" }}>
-        <h3 style={{ fontFamily: "Playfair Display", fontSize: "18px", color: t.charcoal, marginBottom: "16px" }}>Add a Book</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-          {[["title", "Title"], ["author", "Author"], ["category", "Category"]].map(([f, p]) => (
-            <input key={f} value={form[f]} onChange={e => setForm({ ...form, [f]: e.target.value })} placeholder={p}
-              style={{ padding: "10px 12px", border: `1px solid ${t.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", outline: "none" }} />
-          ))}
-        </div>
-        <textarea value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="Why you recommend it..." rows={2}
-          style={{ width: "100%", padding: "10px 12px", border: `1px solid ${t.border}`, borderRadius: "8px", fontFamily: "DM Sans", fontSize: "14px", resize: "vertical", marginBottom: "12px", outline: "none" }} />
-        <Btn small onClick={add}>Add Book</Btn>
-      </div>
-      {reading.map(b => (
-        <div key={b.id} style={{ background: '#FFFFFF', borderRadius: "10px", padding: "16px 20px", marginBottom: "10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <span style={{ fontWeight: "600", color: t.charcoal, fontSize: "14px" }}>{b.title}</span>
-            <span style={{ color: '#4FC3F7', fontSize: "13px", marginLeft: "8px" }}>by {b.author}</span>
-            <span style={{ color: t.mid, fontSize: "11px", display: "block", marginTop: "2px" }}>{b.category}</span>
-          </div>
-          <Btn small onClick={() => onDelete(b.id)} style={{ background: "#FEF2F2", color: "#EF4444", border: "none" }}>Remove</Btn>
-        </div>
-      ))}
-    </div>
-  );
-};
-
 /* ─── ADMIN TIMELINE ──────────────────────────────────────────── */
-const AdminTimeline = ({ timeline, onUpdate , T }) => {  const t = T || getT(false);
+const AdminTimeline = ({ timeline, onUpdate, T }) => {
+  const t = T || getT(false);
+  const [phases, setPhases] = useState(timeline || []);
+  const addPhase = () => setPhases([...phases, { year: '', phase: 'Phase', items: [''] }]);
+  const removePhase = (i) => setPhases(phases.filter((_, j) => j !== i));
+  const updatePhase = (i, field, val) => setPhases(phases.map((p, j) => j === i ? { ...p, [field]: val } : p));
+  const addItem = (i) => setPhases(phases.map((p, j) => j === i ? { ...p, items: [...p.items, ''] } : p));
+  const updateItem = (pi, ii, val) => setPhases(phases.map((p, j) => j === pi ? { ...p, items: p.items.map((item, k) => k === ii ? val : item) } : p));
+  const removeItem = (pi, ii) => setPhases(phases.map((p, j) => j === pi ? { ...p, items: p.items.filter((_, k) => k !== ii) } : p));
+  const iStyle = { padding: '8px 10px', border: `1px solid ${t.border}`, borderRadius: '6px', fontSize: '13px', outline: 'none', background: t.inputBg, color: t.charcoal, fontFamily: "'DM Sans',sans-serif" };
 
-  const [local, setLocal] = useState(timeline || []);
   return (
     <div className="fade-in">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
-        <h1 style={{ fontFamily: "Playfair Display", fontSize: "28px", color: t.charcoal }}>Somalia 2040 Roadmap</h1>
-        <Btn small onClick={() => onUpdate(local)}>Save Changes</Btn>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h1 style={{ fontFamily: 'Playfair Display', fontSize: '26px', color: t.charcoal }}>2040 Roadmap</h1>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Btn small outline onClick={addPhase} T={t}>+ Add Phase</Btn>
+          <Btn small onClick={() => onUpdate(phases)} T={t}>Save Timeline</Btn>
+        </div>
       </div>
-      {local.map((phase, i) => (
-        <div key={i} style={{ background: '#FFFFFF', borderRadius: "12px", padding: "24px", marginBottom: "16px" }}>
-          <div style={{ display: "flex", gap: "12px", alignItems: "center", marginBottom: "16px" }}>
-            <div style={{ background: t.lightBlue, color: t.blueDark, fontSize: "12px", fontWeight: "600", padding: "4px 12px", borderRadius: "20px" }}>{phase.year}</div>
-            <div style={{ fontFamily: "Playfair Display", fontSize: "18px", color: t.charcoal }}>{phase.phase}</div>
+      {phases.map((phase, pi) => (
+        <div key={pi} style={{ background: t.card, borderRadius: '12px', padding: '20px', marginBottom: '12px', border: `1px solid ${t.border}` }}>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '14px', alignItems: 'center' }}>
+            <input value={phase.year} onChange={e => updatePhase(pi, 'year', e.target.value)} placeholder="Year" style={{ ...iStyle, width: '80px' }} />
+            <input value={phase.phase} onChange={e => updatePhase(pi, 'phase', e.target.value)} placeholder="Phase name" style={{ ...iStyle, flex: 1 }} />
+            <button onClick={() => removePhase(pi)} style={{ background: '#FEF2F2', color: '#EF4444', border: 'none', borderRadius: '6px', padding: '6px 12px', cursor: 'pointer', fontSize: '12px' }}>Remove</button>
           </div>
-          {phase.items.map((item, j) => (
-            <div key={j} style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "8px" }}>
-              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: '#D97706', flexShrink: 0 }} />
-              <input value={item} onChange={e => {
-                const updated = [...local];
-                updated[i] = { ...updated[i], items: updated[i].items.map((it, idx) => idx === j ? e.target.value : it) };
-                setLocal(updated);
-              }} style={{ flex: 1, padding: "6px 10px", border: `1px solid ${t.border}`, borderRadius: "6px", fontFamily: "DM Sans", fontSize: "13px", outline: "none" }} />
+          {(phase.items || []).map((item, ii) => (
+            <div key={ii} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+              <input value={item} onChange={e => updateItem(pi, ii, e.target.value)} placeholder="Milestone..." style={{ ...iStyle, flex: 1 }} />
+              <button onClick={() => removeItem(pi, ii)} style={{ background: 'none', border: `1px solid ${t.border}`, borderRadius: '6px', padding: '6px 10px', cursor: 'pointer', color: t.mid, fontSize: '12px' }}>×</button>
             </div>
           ))}
+          <button onClick={() => addItem(pi)} style={{ background: 'none', border: `1px dashed ${t.border}`, borderRadius: '6px', padding: '6px 14px', cursor: 'pointer', color: t.mid, fontSize: '12px', marginTop: '4px' }}>+ Add item</button>
         </div>
       ))}
+      {phases.length === 0 && <div style={{ textAlign: 'center', padding: '48px', background: t.card, borderRadius: '12px', border: `1px dashed ${t.border}`, color: t.mid }}>No phases yet. Add one to build the roadmap.</div>}
     </div>
   );
 };
@@ -1923,7 +2205,7 @@ const AdminTimeline = ({ timeline, onUpdate , T }) => {  const t = T || getT(fal
 const AdminSettings = ({ setPage, siteTitle, onUpdateTitle, T }) => {
   const t = T || getT(false);
   const isMobile = useIsMobile();
-  const [title, setTitle] = useState(siteTitle || 'Somalia');
+  const [title, setTitle] = useState(siteTitle || 'Hiigsiga');
   const [saved, setSaved] = useState(false);
   const [annMsg, setAnnMsg] = useState('');
   const [annColor, setAnnColor] = useState('#4FC3F7');
@@ -1931,47 +2213,45 @@ const AdminSettings = ({ setPage, siteTitle, onUpdateTitle, T }) => {
   const [scheduledCount, setScheduledCount] = useState(0);
 
   const saveTitle = async () => { await onUpdateTitle(title); setSaved(true); setTimeout(() => setSaved(false), 2000); };
-  const saveAnn = async () => { await saveAnnouncement(annMsg, annColor); setAnnSaved(true); setTimeout(() => setAnnSaved(false), 2000); };
+  const saveAnn = async () => { if (!annMsg) return; await saveAnnouncement(annMsg, annColor); setAnnSaved(true); setTimeout(() => setAnnSaved(false), 2000); };
   const clearAnn = async () => { await clearAnnouncement(); setAnnMsg(''); };
   const runScheduled = async () => { const n = await publishScheduledPosts(); setScheduledCount(n); setTimeout(() => setScheduledCount(0), 3000); };
-
   const COLORS = ['#4FC3F7', '#D97706', '#10B981', '#EF4444', '#8B5CF6', '#F59E0B'];
   const iStyle = { width: '100%', padding: '9px 11px', border: `1px solid ${t.border}`, borderRadius: '8px', fontSize: '13px', background: t.inputBg, color: t.charcoal, outline: 'none', fontFamily: "'DM Sans',sans-serif" };
+  const card = { background: t.card, borderRadius: '12px', padding: '24px', border: `1px solid ${t.border}` };
 
   return (
     <div className="fade-in">
-      <h1 style={{ fontFamily: 'Playfair Display', fontSize: '26px', color: t.charcoal, marginBottom: '24px', letterSpacing: '-0.3px' }}>Settings</h1>
+      <h1 style={{ fontFamily: 'Playfair Display', fontSize: '26px', color: t.charcoal, marginBottom: '24px' }}>Settings</h1>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
 
-        {/* Site Identity */}
-        <div style={{ background: t.card, borderRadius: '12px', padding: '24px', border: `1px solid ${t.border}` }}>
+        <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
             <div style={{ width: '3px', height: '16px', background: '#4FC3F7', borderRadius: '2px' }} />
             <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal }}>Site Identity</h3>
           </div>
-          <label style={{ color: t.mid, fontSize: '11px', display: 'block', marginBottom: '4px', fontWeight: '700', letterSpacing: '0.5px' }}>SITE TITLE</label>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+          <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700', display: 'block', marginBottom: '4px' }}>SITE NAME</label>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '6px' }}>
             <input value={title} onChange={e => setTitle(e.target.value)} style={{ ...iStyle, flex: 1 }} />
-            <Btn small onClick={saveTitle} T={t} style={{ background: saved ? '#10B981' : undefined }}>{saved ? '✓ Saved' : 'Save'}</Btn>
+            <Btn small onClick={saveTitle} T={t} style={{ background: saved ? '#10B981' : undefined }}>{saved ? '✓' : 'Save'}</Btn>
           </div>
-          <p style={{ color: t.mid, fontSize: '12px', marginBottom: '20px' }}>Shows as "{title} 2040" across the site.</p>
+          <p style={{ color: t.mid, fontSize: '12px', marginBottom: '20px' }}>Displays as "<strong style={{ color: t.charcoal }}>{title} 2040</strong>" across the site.</p>
           {[['Site URL', 'politics.mmohamud.me'], ['Admin Email', 'mohamedmohammud@gmail.com']].map(([l, v]) => (
             <div key={l} style={{ marginBottom: '12px' }}>
-              <label style={{ color: t.mid, fontSize: '11px', display: 'block', marginBottom: '3px', fontWeight: '700', letterSpacing: '0.5px' }}>{l.toUpperCase()}</label>
-              <input defaultValue={v} readOnly style={{ ...iStyle, background: t.soft, color: t.mid }} />
+              <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700', display: 'block', marginBottom: '3px' }}>{l.toUpperCase()}</label>
+              <input defaultValue={v} readOnly style={{ ...iStyle, background: t.soft, color: t.mid, cursor: 'default' }} />
             </div>
           ))}
         </div>
 
-        {/* Announcement Banner */}
-        <div style={{ background: t.card, borderRadius: '12px', padding: '24px', border: `1px solid ${t.border}` }}>
+        <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
             <div style={{ width: '3px', height: '16px', background: '#D97706', borderRadius: '2px' }} />
             <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal }}>Announcement Banner</h3>
           </div>
-          <p style={{ color: t.mid, fontSize: '13px', marginBottom: '14px', lineHeight: '1.5' }}>Show a banner across the top of the site.</p>
-          <label style={{ color: t.mid, fontSize: '11px', display: 'block', marginBottom: '4px', fontWeight: '700', letterSpacing: '0.5px' }}>MESSAGE</label>
-          <textarea value={annMsg} onChange={e => setAnnMsg(e.target.value)} rows={2} placeholder="e.g. New essay published!" style={{ ...iStyle, resize: 'vertical', marginBottom: '12px' }} />
+          <p style={{ color: t.mid, fontSize: '13px', marginBottom: '14px', lineHeight: '1.5' }}>Show a sitewide banner — useful for new essays, events, or announcements.</p>
+          <label style={{ color: t.mid, fontSize: '11px', fontWeight: '700', display: 'block', marginBottom: '4px' }}>MESSAGE</label>
+          <textarea value={annMsg} onChange={e => setAnnMsg(e.target.value)} rows={2} placeholder="e.g. New essay published — read it now →" style={{ ...iStyle, resize: 'vertical', marginBottom: '12px' }} />
           <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
             {COLORS.map(c => (
               <div key={c} onClick={() => setAnnColor(c)} style={{ width: '28px', height: '28px', borderRadius: '50%', background: c, cursor: 'pointer', border: annColor === c ? '3px solid white' : '2px solid transparent', boxShadow: annColor === c ? `0 0 0 2px ${c}` : 'none', transition: 'all 0.15s' }} />
@@ -1984,44 +2264,41 @@ const AdminSettings = ({ setPage, siteTitle, onUpdateTitle, T }) => {
           </div>
         </div>
 
-        {/* Scheduled Posts */}
-        <div style={{ background: t.card, borderRadius: '12px', padding: '24px', border: `1px solid ${t.border}` }}>
+        <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
             <div style={{ width: '3px', height: '16px', background: '#8B5CF6', borderRadius: '2px' }} />
             <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal }}>Scheduled Posts</h3>
           </div>
-          <p style={{ color: t.mid, fontSize: '13px', marginBottom: '16px', lineHeight: '1.6' }}>Click to publish any posts whose scheduled time has passed.</p>
+          <p style={{ color: t.mid, fontSize: '13px', marginBottom: '16px', lineHeight: '1.6' }}>Publish any posts whose scheduled time has passed. Run this after the scheduled date.</p>
           <Btn small onClick={runScheduled} T={t} style={{ background: scheduledCount > 0 ? '#10B981' : undefined }}>
-            {scheduledCount > 0 ? `✓ Published ${scheduledCount}` : '⏰ Run Scheduler'}
+            {scheduledCount > 0 ? `✓ Published ${scheduledCount} post${scheduledCount > 1 ? 's' : ''}` : '⏰ Run Scheduler'}
           </Btn>
         </div>
 
-        {/* Quick Links */}
-        <div style={{ background: t.card, borderRadius: '12px', padding: '24px', border: `1px solid ${t.border}` }}>
+        <div style={card}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '18px' }}>
             <div style={{ width: '3px', height: '16px', background: '#10B981', borderRadius: '2px' }} />
             <h3 style={{ fontFamily: 'Playfair Display', fontSize: '18px', color: t.charcoal }}>Quick Links</h3>
           </div>
-          {[
-            ['🌐 View Public Site', () => setPage('home')],
-          ].map(([label, action]) => (
-            <div key={label} onClick={action} style={{ padding: '10px 0', borderBottom: `1px solid ${t.border}`, cursor: 'pointer', color: t.charcoal, fontSize: '13px', fontWeight: '500', transition: 'color 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#4FC3F7'}
-              onMouseLeave={e => e.currentTarget.style.color = t.charcoal}
-            >{label}</div>
-          ))}
+          <div onClick={() => setPage('home')} style={{ padding: '11px 0', borderBottom: `1px solid ${t.border}`, cursor: 'pointer', color: t.charcoal, fontSize: '13px', fontWeight: '500', display: 'flex', justifyContent: 'space-between', transition: 'color 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#4FC3F7'}
+            onMouseLeave={e => e.currentTarget.style.color = t.charcoal}
+          ><span>🌐 View Public Site</span><span>→</span></div>
+          <a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer" style={{ padding: '11px 0', borderBottom: `1px solid ${t.border}`, cursor: 'pointer', color: t.charcoal, fontSize: '13px', fontWeight: '500', display: 'flex', justifyContent: 'space-between', textDecoration: 'none', transition: 'color 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#4FC3F7'}
+            onMouseLeave={e => e.currentTarget.style.color = t.charcoal}
+          ><span>🗄 Supabase Dashboard</span><span>↗</span></a>
         </div>
+
       </div>
     </div>
   );
 };
 
+
+/* ─── MAIN APP ────────────────────────────────────────────────── */
 export default function App() {
-  const [page, setPage]         = useState(() => {
-    const saved = localStorage.getItem('s2040_page') || 'home';
-    // Safety: never restore to post/profile (requires runtime data)
-    return ['post', 'profile'].includes(saved) ? 'home' : saved;
-  });
+  const [page, setPage]         = useState('home');
   const [lang, setLang]         = useState('en');
   const [dark, setDark]         = useState(() => localStorage.getItem('s2040_dark') === 'true');
   const [posts, setPosts]       = useState([]);
@@ -2029,32 +2306,26 @@ export default function App() {
   const [reading, setReading]   = useState([]);
   const [word, setWord]         = useState(null);
   const [wordArchive, setWordArchive] = useState([]);
-  const [timeline, setTimeline] = useState([]);
   const [monthlyQ, setMonthlyQ] = useState('');
-  const [siteTitle, setSiteTitle] = useState('Somalia');
+  const [timeline, setTimeline] = useState([]);
+  const [siteTitle, setSiteTitle] = useState('Hiigsiga');
   const [announcement, setAnnouncement] = useState(null);
-  const [annDismissed, setAnnDismissed] = useState(false);
-  const [currentPost, setCurrentPost] = useState(() => { try { return JSON.parse(localStorage.getItem('s2040_post') || 'null'); } catch { return null; } });
-  const [adminLoggedIn, setAdminLoggedIn] = useState(() => localStorage.getItem('s2040_admin') === 'true');
-  const [adminTab, setAdminTab] = useState(() => localStorage.getItem('s2040_tab') || 'dash');
+  const [currentPost, setCurrentPost] = useState(null);
   const [loading, setLoading]   = useState(true);
+  const [adminLoggedIn, setAdminLoggedIn] = useState(() => localStorage.getItem('s2040_admin') === 'true');
+  const [adminTab, setAdminTab] = useState('dash');
+  const [showAuth, setShowAuth] = useState(false);
   const [user, setUser]         = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const [savedPostIds, setSavedPostIds] = useState([]);
-  const [showAuth, setShowAuth] = useState(false);
+
+  useEffect(() => { localStorage.setItem('s2040_dark', dark); }, [dark]);
 
   const T = getT(dark);
 
-  useEffect(() => { localStorage.setItem('s2040_dark', dark); }, [dark]);
-  useEffect(() => { localStorage.setItem('s2040_tab', adminTab); }, [adminTab]);
-  useEffect(() => { if (page !== 'admin') localStorage.setItem('s2040_page', page); }, [page]);
-  useEffect(() => { document.title = `${siteTitle} 2040 · Build. Unite. Lead.`; }, [siteTitle]);
-
   const nav = useCallback((p) => {
-    if (p !== 'admin') {
-      if (p !== 'post') localStorage.setItem('s2040_page', p);
-      trackEvent('page_view', { page: p });
-    }
+    if (p !== 'admin' && p !== 'post') localStorage.setItem('s2040_page', p);
+    if (p !== 'admin') trackEvent('page_view', { page: p });
     setPage(p);
     window.scrollTo(0, 0);
   }, []);
@@ -2071,15 +2342,11 @@ export default function App() {
       if (w) setWord(w);
       if (q) setMonthlyQ(typeof q === 'string' ? q : '');
       if (tl) setTimeline(tl);
-      if (st) setSiteTitle(typeof st === 'string' ? st : 'Somalia');
+      if (st) setSiteTitle(typeof st === 'string' ? st : 'Hiigsiga');
       setWordArchive(wa || []);
-      // Load announcement separately - isolated from main load
       try { const ann = await getAnnouncement(); if (ann) setAnnouncement(ann); } catch {}
-    } catch (err) {
-      console.error('loadAll error:', err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error('loadAll error:', err); }
+    finally { setLoading(false); }
   }, []);
 
   useEffect(() => {
@@ -2092,29 +2359,16 @@ export default function App() {
         getUserSavedPosts(session.user.id).then(setSavedPostIds);
       }
     });
-    // Listen for auth changes
     try {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
           setUser(session.user);
           getProfile(session.user.id).then(setUserProfile);
           getUserSavedPosts(session.user.id).then(setSavedPostIds);
-        } else {
-          setUser(null); setUserProfile(null); setSavedPostIds([]);
-        }
+        } else { setUser(null); setUserProfile(null); setSavedPostIds([]); }
       });
       return () => subscription.unsubscribe();
     } catch (e) { console.error('Auth listener error:', e); }
-    // Restore auth session
-    getSession().then(async (session) => {
-      if (session?.user) {
-        setUser(session.user);
-        const profile = await getProfile(session.user.id);
-        setUserProfile(profile);
-        const saved = await getUserSavedPosts(session.user.id);
-        setSavedPostIds(saved);
-      }
-    });
   }, []);
 
   useEffect(() => {
@@ -2155,31 +2409,32 @@ export default function App() {
   };
 
   const adminLogin  = () => { setAdminLoggedIn(true); localStorage.setItem('s2040_admin', 'true'); };
-  const adminLogout = () => { setAdminLoggedIn(false); localStorage.removeItem('s2040_admin'); nav('home'); };
+  const adminLogout = () => { setAdminLoggedIn(false); localStorage.removeItem('s2040_admin'); setAdminTab('dash'); nav('home'); };
 
-  const hSaveBlogPost = async (p) => { await savePost(p); await loadAll(); };
-  const hDeletePost  = async (id) => { await deletePost(id); setPosts(prev => prev.filter(p => p.id !== id)); };
-  const hTogglePost  = async (id, f, v) => { await togglePostField(id, f, v); await loadAll(); };
-  const hAddComment  = async (c) => { await addComment(c); await loadAll(); };
+  const hSaveBlogPost   = async (p) => { await savePost(p); await loadAll(); };
+  const hDeletePost     = async (id) => { await deletePost(id); await loadAll(); };
+  const hTogglePost     = async (id, field, val) => { await togglePostField(id, field, val); await loadAll(); };
+  const hAddComment     = async (c) => { await addComment(c); await loadAll(); };
   const hApproveComment = async (id) => { await approveComment(id); await loadAll(); };
   const hDeleteComment  = async (id) => { await deleteComment(id); await loadAll(); };
-  const hAddVoice    = async (v) => { const nv = await addVoice(v); if (nv) setVoices(prev => [nv, ...prev]); };
-  const hToggleVoice = async (id, f) => { await toggleVoiceFeatured(id, f); await loadAll(); };
-  const hDeleteVoice = async (id) => { await deleteVoice(id); setVoices(prev => prev.filter(v => v.id !== id)); };
-  const hAddBook     = async (b) => { const nb = await addBook(b); if (nb) setReading(prev => [...prev, nb]); };
-  const hDeleteBook  = async (id) => { await deleteBook(id); setReading(prev => prev.filter(r => r.id !== id)); };
-  const hUpdateWord  = async (w) => { await setSetting('word_of_week', w); setWord(w); };
-  const hUpdateQ     = async (q) => { await setSetting('monthly_question', q); setMonthlyQ(q); };
-  const hUpdateTimeline = async (tl) => { await setSetting('timeline', tl); setTimeline(tl); };
-  const hUpdateTitle = async (title) => { await setSetting('site_title', title); setSiteTitle(title); };
-  const hAddToArchive = async (w) => { const nw = await addToWordArchive(w); if (nw) setWordArchive(prev => [nw, ...prev]); };
-  const hSetActive   = async (id, wd) => { await setActiveWord(id, wd); setWord({ somali: wd.somali, english: wd.english, sentence: wd.sentence }); setWordArchive(prev => prev.map(w => ({ ...w, active: w.id === id }))); };
-  const hOpenPost    = useCallback(async (post) => {
+  const hAddVoice       = async (v) => { await addVoice(v); await loadAll(); };
+  const hToggleVoice    = async (id, val) => { await toggleVoiceFeatured(id, val); await loadAll(); };
+  const hDeleteVoice    = async (id) => { await deleteVoice(id); await loadAll(); };
+  const hAddBook        = async (b) => { await addBook(b); await loadAll(); };
+  const hDeleteBook     = async (id) => { await deleteBook(id); await loadAll(); };
+  const hUpdateWord     = async (w) => { await setSetting('word_of_week', w); await loadAll(); };
+  const hUpdateQ        = async (q) => { await setSetting('monthly_question', q); await loadAll(); };
+  const hUpdateTimeline = async (tl) => { await setSetting('timeline', tl); await loadAll(); };
+  const hUpdateTitle    = async (t) => { await setSetting('site_title', t); setSiteTitle(t); };
+  const hOpenPost       = useCallback(async (post) => {
     setCurrentPost(post); localStorage.setItem('s2040_post', JSON.stringify({ id: post.id }));
     nav('post'); incrementViews(post.id);
     setPosts(prev => prev.map(p => p.id === post.id ? { ...p, views: (p.views || 0) + 1 } : p));
   }, [nav]);
 
+  const activePost = page === 'post' && currentPost ? (posts.find(p => p.id === currentPost.id) || currentPost) : null;
+
+  // ── Admin render ──
   if (page === 'admin') {
     if (!adminLoggedIn) return (<><GlobalStyles dark={dark} /><AdminLogin onLogin={adminLogin} T={T} /></>);
     return (
@@ -2192,7 +2447,7 @@ export default function App() {
           {adminTab === 'analytics' && <AdminAnalytics T={T} />}
           {adminTab === 'comments'  && <AdminComments posts={posts} onApprove={hApproveComment} onDelete={hDeleteComment} T={T} />}
           {adminTab === 'community' && <AdminCommunity voices={voices} onToggleFeatured={hToggleVoice} onDelete={hDeleteVoice} monthlyQ={monthlyQ} onUpdateQ={hUpdateQ} T={T} />}
-          {adminTab === 'word'      && <AdminWord word={word} wordArchive={wordArchive} onUpdate={hUpdateWord} onAddToArchive={hAddToArchive} onSetActive={hSetActive} T={T} />}
+          {adminTab === 'word'      && <AdminWord word={word} wordArchive={wordArchive} onUpdate={hUpdateWord} T={T} />}
           {adminTab === 'reading'   && <AdminReading reading={reading} onAdd={hAddBook} onDelete={hDeleteBook} T={T} />}
           {adminTab === 'timeline'  && <AdminTimeline timeline={timeline} onUpdate={hUpdateTimeline} T={T} />}
           {adminTab === 'settings'  && <AdminSettings setPage={nav} siteTitle={siteTitle} onUpdateTitle={hUpdateTitle} T={T} />}
@@ -2201,64 +2456,63 @@ export default function App() {
     );
   }
 
-  const activePost = page === 'post' && currentPost ? (posts.find(p => p.id === currentPost.id) || currentPost) : null;
-
+  // ── Public render ──
   return (
     <>
       <GlobalStyles dark={dark} />
       <MetaTags page={page} post={page === 'post' ? activePost : null} siteTitle={siteTitle} />
       <a href="#main-content" className="skip-link">Skip to content</a>
       <div style={{ minHeight: '100vh', background: T.bg, fontFamily: "'DM Sans',sans-serif" }}>
-        <Nav page={page} setPage={nav} lang={lang} setLang={setLang} dark={dark} setDark={setDark} T={T} siteTitle={siteTitle} />
-        {!annDismissed && announcement && <AnnouncementBanner announcement={announcement} onClose={() => setAnnDismissed(true)} />}
-
-        <main id="main-content">
-        {loading ? (
-          <div style={{ paddingTop: '64px', minHeight: '100vh', maxWidth: '800px', margin: '0 auto', padding: '120px 24px' }}>
-            {[['12px','100px','20px'],['48px','70%','14px'],['48px','50%','28px'],['16px','90%'],['16px','80%'],['16px','85%']].map(([h, w, mb], i) => (
-              <div key={i} style={{ width: w || '100%', height: h, borderRadius: '6px', marginBottom: mb || '10px', background: T.dark ? 'linear-gradient(90deg,#0F1E30 25%,#1A2D44 50%,#0F1E30 75%)' : 'linear-gradient(90deg,#F0F0EE 25%,#E8E8E6 50%,#F0F0EE 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.4s infinite' }} />
-            ))}
-          </div>
-        ) : (
-          <>
-            {page === 'home'    && <HomePage posts={posts} lang={lang} word={word} setPage={nav} setCurrentPost={hOpenPost} voices={voices} dark={dark} T={T} />}
-            {page === 'blog'    && <BlogPage posts={posts} lang={lang} setPage={nav} setCurrentPost={hOpenPost} T={T} />}
-            {page === 'post' && (
-              activePost
-                ? <PostPage post={activePost} lang={lang} setPage={nav} onCommentSubmit={hAddComment} user={user} savedPostIds={savedPostIds} onSavePost={handleSavePost} onShowAuth={() => setShowAuth(true)} T={T} />
-                : <div style={{ paddingTop: '140px', textAlign: 'center', minHeight: '60vh' }}>
-                    <p style={{ color: T.mid, fontSize: '15px', marginBottom: '20px' }}>Post not found.</p>
-                    <button onClick={() => nav('blog')} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '10px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>← Back to Blog</button>
-                  </div>
-            )}
-            {page === 'vision'  && <VisionPage lang={lang} timeline={timeline} T={T} />}
-            {page === 'story'   && <StoryPage lang={lang} T={T} />}
-            {page === 'reading' && <ReadingPage reading={reading} lang={lang} T={T} />}
-            {page === 'profile' && (
-              user
-                ? <ProfilePage user={user} profile={userProfile} savedPosts={savedPostIds} posts={posts} onUpdateProfile={handleUpdateProfile} onUnsave={handleSavePost} T={T} />
-                : <div style={{ paddingTop: '140px', textAlign: 'center', minHeight: '60vh' }}>
-                    <p style={{ color: T.mid, fontSize: '15px', marginBottom: '20px' }}>Sign in to view your profile.</p>
-                    <button onClick={() => setShowAuth(true)} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '10px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Sign In</button>
-                  </div>
-            )}
-            {page === 'connect' && <ConnectPage voices={voices} onVoiceSubmit={hAddVoice} lang={lang} monthlyQ={monthlyQ} T={T} />}
-            {page === 'about'   && <MarketingPage setPage={nav} lang={lang} voices={voices} posts={posts} T={T} />}
-            {!['home','blog','post','vision','story','reading','connect','about','profile'].includes(page) && (
-              <div style={{ paddingTop: '140px', textAlign: 'center', minHeight: '60vh' }}>
-                <div style={{ fontFamily: 'Playfair Display', fontSize: '80px', color: T.border, marginBottom: '16px' }}>404</div>
-                <p style={{ color: T.mid, fontSize: '15px', marginBottom: '24px' }}>Page not found.</p>
-                <button onClick={() => nav('home')} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '10px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Go Home</button>
-              </div>
-            )}
-          </>
+        {announcement && announcement.active && (
+          <AnnouncementBanner message={announcement.message} color={announcement.color} />
         )}
-
+        <Nav page={page} setPage={nav} lang={lang} setLang={setLang} dark={dark} setDark={setDark} T={T} siteTitle={siteTitle} user={user} userProfile={userProfile} onShowAuth={() => setShowAuth(true)} onSignOut={handleSignOut} />
+        <main id="main-content">
+          {loading ? (
+            <div style={{ paddingTop: '64px', minHeight: '100vh', maxWidth: '800px', margin: '0 auto', padding: '120px 24px' }}>
+              {[['12px','100px','20px'],['48px','70%','14px'],['48px','50%','28px'],['16px','90%'],['16px','80%'],['16px','85%']].map(([h,w,mb],i) => (
+                <div key={i} style={{ height: h, width: w || '100%', background: T.border, borderRadius: '8px', marginBottom: mb || '12px', animation: 'pulse 1.5s infinite' }} />
+              ))}
+            </div>
+          ) : (
+            <>
+              {page === 'home'    && <HomePage posts={posts} lang={lang} word={word} wordArchive={wordArchive} setPage={nav} setCurrentPost={hOpenPost} voices={voices} dark={dark} T={T} />}
+              {page === 'blog'    && <BlogPage posts={posts} lang={lang} setPage={nav} setCurrentPost={hOpenPost} T={T} />}
+              {page === 'vision'  && <VisionPage lang={lang} timeline={timeline} T={T} />}
+              {page === 'story'   && <StoryPage lang={lang} T={T} />}
+              {page === 'reading' && <ReadingPage reading={reading} lang={lang} T={T} />}
+              {page === 'connect' && <ConnectPage voices={voices} onVoiceSubmit={hAddVoice} lang={lang} monthlyQ={monthlyQ} T={T} />}
+              {page === 'about'   && <MarketingPage setPage={nav} lang={lang} voices={voices} posts={posts} T={T} />}
+              {page === 'profile' && (
+                user
+                  ? <ProfilePage user={user} profile={userProfile} savedPosts={savedPostIds} posts={posts} onUpdateProfile={handleUpdateProfile} onUnsave={handleSavePost} T={T} />
+                  : <div style={{ paddingTop: '140px', textAlign: 'center', minHeight: '60vh' }}>
+                      <p style={{ color: T.mid, fontSize: '15px', marginBottom: '20px' }}>Sign in to view your profile.</p>
+                      <button onClick={() => setShowAuth(true)} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '10px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Sign In</button>
+                    </div>
+              )}
+              {page === 'post' && (
+                activePost
+                  ? <PostPage post={activePost} lang={lang} setPage={nav} onCommentSubmit={hAddComment} user={user} savedPostIds={savedPostIds} onSavePost={handleSavePost} onShowAuth={() => setShowAuth(true)} T={T} />
+                  : <div style={{ paddingTop: '140px', textAlign: 'center', minHeight: '60vh' }}>
+                      <p style={{ color: T.mid, fontSize: '15px', marginBottom: '20px' }}>Post not found.</p>
+                      <button onClick={() => nav('blog')} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '10px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>← Back to Blog</button>
+                    </div>
+              )}
+              {!['home','blog','vision','story','reading','connect','about','profile','post'].includes(page) && (
+                <div style={{ paddingTop: '140px', textAlign: 'center', minHeight: '60vh' }}>
+                  <div style={{ fontFamily: 'Playfair Display', fontSize: '80px', color: T.border, marginBottom: '16px' }}>404</div>
+                  <p style={{ color: T.mid, fontSize: '15px', marginBottom: '24px' }}>Page not found.</p>
+                  <button onClick={() => nav('home')} style={{ background: '#4FC3F7', color: '#0A0F1A', border: 'none', borderRadius: '6px', padding: '10px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Go Home</button>
+                </div>
+              )}
+            </>
+          )}
         </main>
         <Footer setPage={nav} T={T} siteTitle={siteTitle} />
-        <div onClick={() => { setPage('admin'); window.scrollTo(0,0); }} style={{ position: 'fixed', bottom: '20px', right: '20px', background: '#040C16', color: '#4FC3F7', border: '1px solid #1A2D44', padding: '8px 14px', borderRadius: '30px', fontSize: '12px', cursor: 'pointer', boxShadow: '0 4px 24px rgba(0,0,0,0.4)', fontWeight: '600', zIndex: 50, transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.background = '#4FC3F7'; e.currentTarget.style.color = '#040C16'; }} onMouseLeave={e => { e.currentTarget.style.background = '#040C16'; e.currentTarget.style.color = '#4FC3F7'; }}>Admin</div>
         <BackToTop />
         {showAuth && <AuthModal onClose={() => setShowAuth(false)} onSuccess={handleAuthSuccess} T={T} />}
+        <div onClick={() => { setPage('admin'); window.scrollTo(0,0); }} style={{ position: 'fixed', bottom: '20px', right: '20px', background: '#040C16', color: '#4FC3F7', border: '1px solid #1A2D44', padding: '8px 14px', borderRadius: '30px', fontSize: '11px', fontWeight: '700', cursor: 'pointer', zIndex: 50, letterSpacing: '1px', userSelect: 'none' }}>⚙ ADMIN</div>
       </div>
     </>
   );
