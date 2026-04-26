@@ -316,3 +316,34 @@ export const checkPostSaved = async (userId, postId) => {
   const { data } = await supabase.from('somalia_saved_posts').select('id').eq('user_id', userId).eq('post_id', postId).single();
   return !!data;
 };
+
+/* ─── VOICE REACTIONS ──────────────────────────────────────────── */
+export const likeVoice = async (voiceId) => {
+  // Use localStorage to prevent double-liking (no auth required)
+  const liked = JSON.parse(localStorage.getItem('s2040_liked_voices') || '[]');
+  if (liked.includes(voiceId)) return { alreadyLiked: true };
+
+  const { data, error } = await supabase
+    .from('somalia_voices')
+    .update({ likes: supabase.rpc ? undefined : 0 })
+    .eq('id', voiceId);
+
+  // Simple approach: increment via raw SQL
+  const { error: rpcErr } = await supabase.rpc('increment_voice_likes', { voice_id: voiceId }).catch(() => ({ error: true }));
+
+  if (rpcErr) {
+    // Fallback: fetch current likes and update manually
+    const { data: current } = await supabase.from('somalia_voices').select('likes').eq('id', voiceId).single();
+    const currentLikes = current?.likes || 0;
+    await supabase.from('somalia_voices').update({ likes: currentLikes + 1 }).eq('id', voiceId);
+  }
+
+  liked.push(voiceId);
+  localStorage.setItem('s2040_liked_voices', JSON.stringify(liked));
+  return { success: true };
+};
+
+export const isVoiceLiked = (voiceId) => {
+  const liked = JSON.parse(localStorage.getItem('s2040_liked_voices') || '[]');
+  return liked.includes(voiceId);
+};
